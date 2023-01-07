@@ -6,5 +6,11 @@ export default () => {
 };
 
 const poo = css`
-	color: red;
+	@layer A {
+		color: red;
+	}
+
+	@layer B {
+		color: hotpink;
+	}
 `;

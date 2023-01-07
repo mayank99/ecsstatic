@@ -12,10 +12,8 @@
 		".": "./index.mjs"
 	},
 	"dependencies": {
-		"nanoid": "^4.0.0",
 		"postcss": "^8.4.18",
-		"postcss-nested": "^6.0.0",
-		"lightningcss": "^1.18.0"
+		"postcss-nested": "^6.0.0"
 	},
 	"devDependencies": {
 		"vite": "^3.1.8"

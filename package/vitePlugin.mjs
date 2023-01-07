@@ -1,6 +1,6 @@
+import postcss from 'postcss';
+import postcssNested from 'postcss-nested';
 import hash from './hash.mjs';
-// import { nanoid } from 'nanoid';
-// import * as lightningCss from 'lightningcss';
 
 /** @returns {import('vite').Plugin} */
 export function vitePlugin() {
@@ -64,19 +64,8 @@ function processCss(templateContents = '', originalName = '') {
 	const className = `${originalName}-${hash(templateContents)}`;
 	const unprocessedCss = `.${className}{${templateContents}}`;
 
-	// const css = lightningCss.transform({
-	// 	filename: `${fileNameWithoutExt}.acab.css`,
-	// 	code: Buffer.from(unprocessedCss),
-	// 	minify: true,
-	// 	nesting: true,
-	// 	visitor: {
-	// 		Rule(rule) {
-	// 			console.log(rule);
-	// 		},
-	// 	},
-	// });
-
-	return [unprocessedCss, className];
+	const { css } = postcss([postcssNested()]).process(unprocessedCss);
+	return [css, className];
 }
 
 function getImportNameFromTree(ast) {
