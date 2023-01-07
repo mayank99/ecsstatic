@@ -9,7 +9,6 @@ export const plugin = createUnplugin(() => {
 	const cssList = new Map();
 
 	return {
-		enforce: 'post',
 		name: 'ecsstatic',
 
 		resolveId(id) {
@@ -59,7 +58,7 @@ export const plugin = createUnplugin(() => {
 				const [css, className] = processCss(templateContents, originalName);
 
 				// add processed css to a .css file
-				const cssFileName = `virtual:${className}.css`;
+				const cssFileName = `${className}.css`;
 				cssList.set(cssFileName, css);
 				code = `${code}\nimport "${cssFileName}";\n`;
 
