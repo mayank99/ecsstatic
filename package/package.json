@@ -10,7 +10,21 @@
 	"main": "index.js",
 	"types": "index.d.ts",
 	"exports": {
-		".": "./index.js"
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
+		},
+		"./css": {
+			"types": "./dist/css.d.ts",
+			"import": "./dist/css.js",
+			"require": "./dist/css.cjs"
+		},
+		"./vite": {
+			"types": "./dist/vite.d.ts",
+			"import": "./dist/vite.js",
+			"require": "./dist/vite.cjs"
+		}
 	},
 	"dependencies": {
 		"postcss": "^8.4.18",
@@ -18,6 +32,11 @@
 		"unplugin": "^1.0.1"
 	},
 	"devDependencies": {
+		"tsup": "^6.5.0",
 		"vite": "^4.0.0"
+	},
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch"
 	}
 }

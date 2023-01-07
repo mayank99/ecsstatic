@@ -1,5 +1,3 @@
-import type { Plugin } from 'vite';
-
 /**
  * Returns a scoped className for the CSS provided in the template string.
  *
@@ -21,16 +19,8 @@ import type { Plugin } from 'vite';
  *   <button className={buttonClass}>hi</button>
  * );
  */
-export function css(template: TemplateStringsArray, ...args: Array<unknown>): string;
-
-/**
- * Returns the vite plugin for ecsstatic.
- *
- * @example
- * import { ecsstatic } from '@acab/ecsstatic';
- *
- * export default defineConfig({
- * 	plugins: [ecsstaticVite()],
- * });
- */
-export function ecsstaticVite(): Plugin;
+export function css() {
+	throw new Error(
+		`If you're seeing this error, it is likely your bundler isn't configured correctly.`
+	);
+}
