@@ -1,9 +1,9 @@
+import { createUnplugin } from 'unplugin';
 import postcss from 'postcss';
 import postcssNested from 'postcss-nested';
 import hash from './hash.js';
 
-/** @returns {import('vite').Plugin} */
-export function vitePlugin() {
+export const plugin = createUnplugin(() => {
 	const cssList = new Map();
 
 	return {
@@ -15,56 +15,63 @@ export function vitePlugin() {
 			return null;
 		},
 
+		loadInclude(id) {
+			return cssList.has(id);
+		},
+
 		load(id) {
 			if (cssList.has(id)) {
-				return cssList.get(id);
+				const css = cssList.get(id);
+				return css;
 			}
 		},
 
-		transform(code, id) {
-			if (id.endsWith('.tsx')) {
-				const parsedAst = this.parse(code);
+		transformInclude(id) {
+			return id.endsWith('.tsx');
+		},
 
-				const [importName, importStart, importEnd] = processImport(parsedAst);
-				if (!importName) return;
+		transform(code) {
+			const parsedAst = this.parse(code);
 
-				const cssTemplateDeclarations = parsedAst.body.filter(
-					(node) =>
-						node.type === 'VariableDeclaration' &&
-						node.declarations?.[0]?.init?.type === 'TaggedTemplateExpression' &&
-						node.declarations?.[0]?.init?.tag?.name === importName
+			const [importName, importStart, importEnd] = processImport(parsedAst);
+			if (!importName) return;
+
+			const cssTemplateDeclarations = parsedAst.body.filter(
+				(node) =>
+					node.type === 'VariableDeclaration' &&
+					node.declarations?.[0]?.init?.type === 'TaggedTemplateExpression' &&
+					node.declarations?.[0]?.init?.tag?.name === importName
+			);
+			if (cssTemplateDeclarations?.length === 0) return;
+
+			cssTemplateDeclarations.forEach(async (node) => {
+				const originalName = node.declarations[0].id.name;
+				const { start, end, quasi } = node.declarations[0].init;
+
+				const templateContentsFullRaw = code.slice(quasi.start, quasi.end);
+				const templateContents = templateContentsFullRaw.substring(
+					0,
+					templateContentsFullRaw.length - 2
 				);
-				if (cssTemplateDeclarations?.length === 0) return;
 
-				cssTemplateDeclarations.forEach(async (node) => {
-					const originalName = node.declarations[0].id.name;
-					const { start, end, quasi } = node.declarations[0].init;
+				const [css, className] = processCss(templateContents, originalName);
 
-					const templateContentsFullRaw = code.slice(quasi.start, quasi.end);
-					const templateContents = templateContentsFullRaw.substring(
-						0,
-						templateContentsFullRaw.length - 2
-					);
+				// add processed css to a .css file
+				const cssFileName = `virtual:${className}.css`;
+				cssList.set(cssFileName, css);
+				code = `${code}\nimport "${cssFileName}";\n`;
 
-					const [css, className] = processCss(templateContents, originalName);
+				// replace the tagged template literal with the generated className
+				code = code.replace(code.slice(start, end), `"${className}"`);
+			});
 
-					// add processed css to a .css file
-					const cssFileName = `${className}.css`;
-					cssList.set(cssFileName, css);
-					code = `${code}\nimport "${cssFileName}";\n`;
+			// remove ecsstatic import, we don't need it anymore
+			code = code.replace(code.slice(importStart, importEnd), '');
 
-					// replace the tagged template literal with the generated className
-					code = code.replace(code.slice(start, end), `"${className}"`);
-				});
-
-				// remove ecsstatic import, we don't need it anymore
-				code = code.replace(code.slice(importStart, importEnd), '');
-
-				return { code };
-			}
+			return { code };
 		},
 	};
-}
+});
 
 function processCss(templateContents = '', originalName = '') {
 	const className = `${originalName}-${hash(templateContents)}`;
