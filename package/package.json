@@ -7,7 +7,8 @@
 		"url": "git+https://github.com/mayank99/ecsstatic.git"
 	},
 	"type": "module",
-	"main": "index.js",
+	"main": "index.cjs",
+	"module": "index.js",
 	"types": "index.d.ts",
 	"exports": {
 		".": {
