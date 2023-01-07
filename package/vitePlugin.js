@@ -36,10 +36,15 @@ export function vitePlugin() {
 				);
 				if (cssTemplateDeclarations?.length === 0) return;
 
-				cssTemplateDeclarations.forEach((node) => {
+				cssTemplateDeclarations.forEach(async (node) => {
 					const originalName = node.declarations[0].id.name;
-					const init = node.declarations[0].init;
-					const templateContents = init.quasi.quasis[0].value.raw;
+					const { start, end, quasi } = node.declarations[0].init;
+
+					const templateContentsFullRaw = code.slice(quasi.start, quasi.end);
+					const templateContents = templateContentsFullRaw.substring(
+						0,
+						templateContentsFullRaw.length - 2
+					);
 
 					const [css, className] = processCss(templateContents, originalName);
 
@@ -49,8 +54,6 @@ export function vitePlugin() {
 					code = `${code}\nimport "${cssFileName}";\n`;
 
 					// replace the tagged template literal with the generated className
-					const start = init.tag.start;
-					const end = init.quasi.end;
 					code = code.replace(code.slice(start, end), `"${className}"`);
 				});
 
