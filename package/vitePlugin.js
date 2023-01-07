@@ -25,7 +25,7 @@ export function vitePlugin() {
 			if (id.endsWith('.tsx')) {
 				const parsedAst = this.parse(code);
 
-				const importName = getImportNameFromTree(parsedAst);
+				const [importName, importStart, importEnd] = processImport(parsedAst);
 				if (!importName) return;
 
 				const cssTemplateDeclarations = parsedAst.body.filter(
@@ -54,6 +54,9 @@ export function vitePlugin() {
 					code = code.replace(code.slice(start, end), `"${className}"`);
 				});
 
+				// remove ecsstatic import, we don't need it anymore
+				code = code.replace(code.slice(importStart, importEnd), '');
+
 				return { code };
 			}
 		},
@@ -68,7 +71,7 @@ function processCss(templateContents = '', originalName = '') {
 	return [css, className];
 }
 
-function getImportNameFromTree(ast) {
+function processImport(ast) {
 	let importName = '';
 
 	for (const node of ast.body) {
@@ -76,11 +79,11 @@ function getImportNameFromTree(ast) {
 			if (node.source.value === '@acab/ecsstatic') {
 				if (node.specifiers[0].imported.name === 'css') {
 					importName = node.specifiers[0].local.name;
-					break;
+					return [importName, node.start, node.end];
 				}
 			}
 		}
 	}
 
-	return importName;
+	return [importName];
 }
