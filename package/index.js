@@ -1,2 +1,2 @@
 export { css } from './css.js';
-export { vitePlugin as ecsstaticVite } from './vitePlugin.js';
+export { plugin } from './plugin.js';
