@@ -7,9 +7,10 @@
 		"url": "git+https://github.com/mayank99/ecsstatic.git"
 	},
 	"type": "module",
-	"main": "index.mjs",
+	"main": "index.js",
 	"exports": {
-		".": "./index.mjs"
+		".": "./index.js",
+		"./*": "./*"
 	},
 	"dependencies": {
 		"postcss": "^8.4.18",

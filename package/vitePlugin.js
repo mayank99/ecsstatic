@@ -1,6 +1,6 @@
 import postcss from 'postcss';
 import postcssNested from 'postcss-nested';
-import hash from './hash.mjs';
+import hash from './hash.js';
 
 /** @returns {import('vite').Plugin} */
 export function vitePlugin() {
