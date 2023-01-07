@@ -19,7 +19,7 @@
  *   <button className={buttonClass}>hi</button>
  * );
  */
-export function css() {
+export function css(templates: TemplateStringsArray, ...args: any[]): string {
 	throw new Error(
 		`If you're seeing this error, it is likely your bundler isn't configured correctly.`
 	);
