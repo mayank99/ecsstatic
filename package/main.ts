@@ -49,11 +49,14 @@ export const plugin = createUnplugin(() => {
 				const originalName = node.declarations[0].id.name;
 				const { start, end, quasi } = node.declarations[0].init;
 
-				const templateContentsFullRaw = code.slice(quasi.start, quasi.end);
-				const templateContents = templateContentsFullRaw.substring(
-					1,
-					templateContentsFullRaw.length - 2
-				);
+				let templateContents = '';
+				quasi.quasis.forEach((_quasi: any, index: number) => {
+					templateContents += _quasi.value.raw;
+					if (index < quasi.quasis.length - 1) {
+						const expression = quasi.expressions[index];
+						templateContents += evalish(code.slice(expression.start, expression.end));
+					}
+				});
 
 				const [css, className] = processCss(templateContents, originalName);
 
@@ -100,4 +103,9 @@ function processImport(ast: any) {
 	}
 
 	return [importName];
+}
+
+// eval()-ish for small inline expressions
+function evalish(expression: string) {
+	return new Function('', `return ${expression}`)();
 }
