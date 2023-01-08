@@ -3,7 +3,7 @@ import postcssNested from 'postcss-nested';
 import hash from './hash.js';
 import MagicString from 'magic-string';
 import postcss from 'postcss';
-import * as ESTree from 'estree';
+import type { Identifier, Program, TaggedTemplateExpression, VariableDeclaration } from 'estree';
 
 export const plugin = createUnplugin(() => {
 	const cssList = new Map();
@@ -32,7 +32,7 @@ export const plugin = createUnplugin(() => {
 		},
 
 		transform(code) {
-			const parsedAst = this.parse(code) as unknown as ESTree.Program;
+			const parsedAst = this.parse(code) as Program;
 			const magicCode = new MagicString(code);
 
 			const [importName, importStart, importEnd] = processImport(parsedAst);
@@ -41,20 +41,21 @@ export const plugin = createUnplugin(() => {
 			const cssTemplateDeclarations = parsedAst.body.filter(
 				(node) =>
 					node.type === 'VariableDeclaration' &&
-					node.declarations?.[0]?.init?.type === 'TaggedTemplateExpression' &&
-					(node.declarations?.[0]?.init?.tag as any)?.name === importName
-			);
+					node.declarations[0].init?.type === 'TaggedTemplateExpression' &&
+					node.declarations[0].init.tag.type === 'Identifier' &&
+					node.declarations[0].init.tag.name === importName
+			) as VariableDeclaration[];
 			if (cssTemplateDeclarations?.length === 0) return;
 
-			cssTemplateDeclarations.forEach((node: any) => {
-				const originalName = node.declarations[0].id.name;
-				const { start, end, quasi } = node.declarations[0].init as ExtendedTaggedTemplateExpression;
+			cssTemplateDeclarations.forEach((node) => {
+				const originalName = (node.declarations[0].id as Identifier).name;
+				const { start, end, quasi } = node.declarations[0].init as TaggedTemplateExpression;
 
 				let templateContents = '';
 				quasi.quasis.forEach((_quasi, index) => {
 					templateContents += _quasi.value.raw;
 					if (index < quasi.quasis.length - 1) {
-						const expression = quasi.expressions[index] as ExtendedExpression;
+						const expression = quasi.expressions[index];
 						templateContents += evalish(code.slice(expression.start, expression.end));
 					}
 				});
@@ -89,7 +90,7 @@ function processCss(templateContents = '', originalName = '') {
 	return [css, className];
 }
 
-function processImport(ast: ESTree.Program) {
+function processImport(ast: Program) {
 	let importName = '';
 
 	for (const node of ast.body) {
@@ -98,7 +99,7 @@ function processImport(ast: ESTree.Program) {
 				const importSpecifier = node.specifiers[0];
 				if (importSpecifier.type === 'ImportSpecifier' && importSpecifier.imported.name === 'css') {
 					importName = importSpecifier.local.name;
-					const { start, end } = node as typeof node & StartAndEnd;
+					const { start, end } = node;
 					return [importName, start, end] as const;
 				}
 			}
@@ -112,7 +113,3 @@ function processImport(ast: ESTree.Program) {
 function evalish(expression: string) {
 	return new Function('', `return ${expression}`)();
 }
-
-type StartAndEnd = { start: number; end: number };
-type ExtendedTaggedTemplateExpression = ESTree.TaggedTemplateExpression & StartAndEnd;
-type ExtendedExpression = ESTree.Expression & StartAndEnd;
