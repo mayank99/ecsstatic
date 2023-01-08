@@ -53,6 +53,7 @@ importers:
 
   package:
     specifiers:
+      '@types/estree': ^1.0.0
       magic-string: ^0.27.0
       postcss: ^8.4.18
       postcss-nested: ^6.0.0
@@ -65,6 +66,7 @@ importers:
       postcss-nested: 6.0.0_postcss@8.4.18
       unplugin: 1.0.1
     devDependencies:
+      '@types/estree': 1.0.0
       tsup: 6.5.0_postcss@8.4.18
       vite: 4.0.4
 
