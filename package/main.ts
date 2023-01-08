@@ -1,9 +1,8 @@
 import { createUnplugin } from 'unplugin';
 import postcssNested from 'postcss-nested';
 import hash from './hash.js';
-import _postcss from 'postcss';
-
-const postcss = _postcss.default;
+import MagicString from 'magic-string';
+import postcss from 'postcss';
 
 export const plugin = createUnplugin(() => {
 	const cssList = new Map();
@@ -33,6 +32,7 @@ export const plugin = createUnplugin(() => {
 
 		transform(code) {
 			const parsedAst = this.parse(code);
+			const magicCode = new MagicString(code);
 
 			const [importName, importStart, importEnd] = processImport(parsedAst);
 			if (!importName) return;
@@ -60,16 +60,19 @@ export const plugin = createUnplugin(() => {
 				// add processed css to a .css file
 				const cssFileName = `${className}.css`;
 				cssList.set(cssFileName, css);
-				code = `${code}\nimport "${cssFileName}";\n`;
+				magicCode.append(`import "${cssFileName}";\n`);
 
 				// replace the tagged template literal with the generated className
-				code = code.replace(code.slice(start, end), `"${className}"`);
+				magicCode.update(start, end, `"${className}"`);
 			});
 
 			// remove ecsstatic import, we don't need it anymore
-			code = code.replace(code.slice(importStart, importEnd), '');
+			magicCode.update(importStart, importEnd, '');
 
-			return { code };
+			return {
+				code: magicCode.toString(),
+				map: magicCode.generateMap(),
+			};
 		},
 	};
 });
