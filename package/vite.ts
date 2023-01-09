@@ -4,6 +4,7 @@ import postcssNested from 'postcss-nested';
 import hash from './hash.js';
 import MagicString from 'magic-string';
 import postcss from 'postcss';
+import path from 'path';
 import type { Identifier, Program, TaggedTemplateExpression, VariableDeclaration } from 'estree';
 
 /**
@@ -22,8 +23,15 @@ export const ecsstatic = () => {
 	return <Plugin>{
 		name: 'ecsstatic',
 
-		resolveId(id) {
-			if (cssList.has(id)) return id;
+		buildStart() {
+			cssList.clear();
+		},
+
+		resolveId(id, importer) {
+			if (id.endsWith('css')) {
+				if (id.startsWith('.')) id = normalizePath(new URL(id, importer).href);
+				if (cssList.has(id)) return id;
+			}
 			return null;
 		},
 
@@ -76,9 +84,16 @@ export const ecsstatic = () => {
 				const [css, className] = processCss(templateContents, originalName);
 
 				// add processed css to a .css file
-				const cssFileName = `${className}.css`;
-				cssList.set(cssFileName, css);
-				magicCode.append(`import "${cssFileName}";\n`);
+				const fileNameWithoutExt = path.parse(id).name;
+				const cssFilename = `${fileNameWithoutExt}.acab.css`.toLowerCase();
+				magicCode.append(`import "./${cssFilename}";\n`);
+				const fullCssPath = normalizePath(path.join(path.dirname(id), cssFilename));
+				if (cssList.has(fullCssPath)) {
+					const oldCss = cssList.get(fullCssPath);
+					cssList.set(fullCssPath, `${oldCss}\n${css}`);
+				} else {
+					cssList.set(fullCssPath, css);
+				}
 
 				// replace the tagged template literal with the generated className
 				magicCode.update(start, end, `"${className}"`);
@@ -199,4 +214,8 @@ function isCssTaggedTemplateLiteral(node: VariableDeclaration, ecsstaticImportNa
 		node.declarations[0].init.tag.type === 'Identifier' &&
 		node.declarations[0].init.tag.name === ecsstaticImportName
 	);
+}
+
+function normalizePath(original: string) {
+	return original.replace(/\\/g, '/').toLowerCase();
 }
