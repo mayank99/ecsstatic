@@ -25,6 +25,7 @@ export const plugin = () => {
 		},
 
 		transform(code, id) {
+			[id] = id.split('?');
 			if (!id.endsWith('.tsx')) return;
 
 			const parsedAst = this.parse(code) as Program;
