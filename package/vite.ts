@@ -10,4 +10,4 @@ import { plugin } from './main.js';
  * 	plugins: [ecsstaticVite()],
  * });
  */
-export const ecsstatic = plugin.vite;
+export const ecsstatic = plugin;

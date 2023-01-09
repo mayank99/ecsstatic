@@ -1,24 +1,20 @@
+import type { Plugin } from 'vite';
 import esbuild from 'esbuild';
-import { createUnplugin } from 'unplugin';
 import postcssNested from 'postcss-nested';
 import hash from './hash.js';
 import MagicString from 'magic-string';
 import postcss from 'postcss';
 import type { Identifier, Program, TaggedTemplateExpression, VariableDeclaration } from 'estree';
 
-export const plugin = createUnplugin(() => {
+export const plugin = () => {
 	const cssList = new Map();
 
-	return {
+	return <Plugin>{
 		name: 'ecsstatic',
 
 		resolveId(id) {
 			if (cssList.has(id)) return id;
 			return null;
-		},
-
-		loadInclude(id) {
-			return cssList.has(id);
 		},
 
 		load(id) {
@@ -28,11 +24,9 @@ export const plugin = createUnplugin(() => {
 			}
 		},
 
-		transformInclude(id) {
-			return id.endsWith('.tsx');
-		},
-
 		transform(code, id) {
+			if (!id.endsWith('.tsx')) return;
+
 			const parsedAst = this.parse(code) as Program;
 			const magicCode = new MagicString(code);
 
@@ -88,7 +82,7 @@ export const plugin = createUnplugin(() => {
 			};
 		},
 	};
-});
+};
 
 /**
  * processes template strings using postcss-nested and
