@@ -6,7 +6,17 @@ import MagicString from 'magic-string';
 import postcss from 'postcss';
 import type { Identifier, Program, TaggedTemplateExpression, VariableDeclaration } from 'estree';
 
-export const plugin = () => {
+/**
+ * Returns the vite plugin for ecsstatic.
+ *
+ * @example
+ * import { ecsstaticVite } from '@acab/ecsstatic';
+ *
+ * export default defineConfig({
+ * 	plugins: [ecsstaticVite()],
+ * });
+ */
+export const ecsstatic = () => {
 	const cssList = new Map();
 
 	return <Plugin>{
