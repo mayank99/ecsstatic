@@ -56,7 +56,7 @@ export const plugin = createUnplugin(() => {
 					templateContents += _quasi.value.raw;
 					if (index < quasi.quasis.length - 1) {
 						const expression = quasi.expressions[index];
-						templateContents += evalish(code.slice(expression.start, expression.end));
+						templateContents += kindaEval(code.slice(expression.start, expression.end));
 					}
 				});
 
@@ -109,7 +109,6 @@ function processImport(ast: Program) {
 	return [importName, 0, 0] as const;
 }
 
-// eval()-ish for small inline expressions
-function evalish(expression: string) {
-	return new Function('', `return ${expression}`)();
+function kindaEval(expression: string, args = {}) {
+	return new Function(...Object.keys(args), `return ${expression}`)(...Object.values(args));
 }
