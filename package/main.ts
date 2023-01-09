@@ -61,7 +61,7 @@ export const plugin = createUnplugin(() => {
 					templateContents += _quasi.value.raw;
 					if (index < quasi.quasis.length - 1) {
 						const expression = quasi.expressions[index];
-						templateContents += evalWithVars(
+						templateContents += evalWithEsbuild(
 							code.slice(expression.start, expression.end),
 							inlinedVars
 						);
@@ -122,14 +122,30 @@ function processImport(ast: Program) {
 	return [importName, 0, 0] as const;
 }
 
-/** uses Function() to evaluate expressions (inside tagged template literals) */
-function evalWithVars(expression: string, inlineVarDeclarations = '') {
-	return new Function(`${inlineVarDeclarations};\n return (${expression})`)();
+/**
+ * uses esbuild.transform to tree-shake unused var declarations
+ * before evaluating it inside the Function constructor
+ */
+function evalWithEsbuild(expression: string, allVarDeclarations = '') {
+	const transformed = esbuild.transformSync(
+		`${allVarDeclarations}\n
+		export const __dontTreeshakeThisForEcsstatic = () => (${expression});`,
+		{
+			format: 'esm',
+			treeShaking: true,
+		}
+	);
+	const treeshakedDeclarations = transformed.code.substring(
+		0,
+		transformed.code.indexOf('const __dontTreeshakeThisForEcsstatic')
+	);
+
+	return new Function(`${treeshakedDeclarations};\nreturn (${expression})`)();
 }
 
 /**
- * uses esbuild to inline all imports, then returns all variable declarations.
- * this can be passed to `evalWithVars` where inline expressions will be resolved correctly.
+ * uses esbuild.build to inline all imports, then returns all variable declarations.
+ * this can be passed to `evalWithEsbuild` where inline expressions will be resolved correctly.
  */
 function findAllVariablesUsingEsbuild(
 	fileId: string,
