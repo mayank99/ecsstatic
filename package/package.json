@@ -16,11 +16,6 @@
 			"import": "./dist/index.js",
 			"require": "./dist/index.cjs"
 		},
-		"./css": {
-			"types": "./dist/css.d.ts",
-			"import": "./dist/css.js",
-			"require": "./dist/css.cjs"
-		},
 		"./vite": {
 			"types": "./dist/vite.d.ts",
 			"import": "./dist/vite.js",
