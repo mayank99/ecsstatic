@@ -1,13 +1,14 @@
-import type { Plugin } from 'vite';
 import esbuild from 'esbuild';
-import nodeEval from 'eval';
-import postcssScss from 'postcss-scss';
-import postcssNested from 'postcss-nested';
-import hash from './hash.js';
 import MagicString from 'magic-string';
-import postcss from 'postcss';
+import nodeEval from 'eval';
 import path from 'path';
+import postcss from 'postcss';
+import postcssNested from 'postcss-nested';
+import postcssScss from 'postcss-scss';
 import type { Identifier, Program, TaggedTemplateExpression, VariableDeclaration } from 'estree';
+import type { Plugin } from 'vite';
+
+import hash from './hash.js';
 
 /**
  * Returns the vite plugin for ecsstatic.
