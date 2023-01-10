@@ -17,8 +17,9 @@
 		"jsx": "react-jsx",
 		"plugins": [
 			{
-				"name": "typescript-styled-plugin",
-				"validate": false
+				"name": "@styled/typescript-styled-plugin",
+				"validate": false,
+				"tags": ["css", "scss"]
 			}
 		]
 	},
