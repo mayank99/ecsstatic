@@ -56,7 +56,7 @@ export const ecsstatic = () => {
 		transform(code, id) {
 			[id] = id.split('?');
 			if (/node_modules/.test(id)) return;
-			if (!/(j|t)s(x)*$/.test(id)) return;
+			if (!/(c|m)*(j|t)s(x)*$/.test(id)) return;
 
 			const parsedAst = this.parse(code) as Program;
 			const magicCode = new MagicString(code);
