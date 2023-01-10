@@ -60,6 +60,7 @@ importers:
       '@types/estree': ^1.0.0
       '@types/node': ^18.11.18
       esbuild: ^0.16.16
+      eval: ^0.1.8
       magic-string: ^0.27.0
       postcss: ^8.4.19
       postcss-nested: ^6.0.0
@@ -68,6 +69,7 @@ importers:
       vite: ^4.0.0
     dependencies:
       esbuild: 0.16.16
+      eval: 0.1.8
       magic-string: 0.27.0
       postcss: 8.4.21
       postcss-nested: 6.0.0_postcss@8.4.21
@@ -812,7 +814,6 @@ packages:
 
   /@types/node/18.11.18:
     resolution: {integrity: sha512-DHQpWGjyQKSHj3ebjFI/wRKcqQcdR+MoFBygntYOZytCqNfkd2ZC4ARDJ2DQqhjH5p85Nnd3jhUJIXrszFX/JA==}
-    dev: true
 
   /@types/parse5/6.0.3:
     resolution: {integrity: sha512-SuT16Q1K51EAVPz1K29DJ/sXjhSQ0zjvsypYJ6tlwVsRV9jwW5Adq2ch8Dq8kDBCkYnELS7N7VNCSB5nC56t/g==}
@@ -1666,6 +1667,14 @@ packages:
 
   /estree-walker/3.0.2:
     resolution: {integrity: sha512-C03BvXCQIH/po+PNPONx/zSM9ziPr9weX8xNhYb/IJtdJ9z+L4z9VKPTB+UTHdmhnIopA2kc419ueyVyHVktwA==}
+    dev: false
+
+  /eval/0.1.8:
+    resolution: {integrity: sha512-EzV94NYKoO09GLXGjXj9JIlXijVck4ONSr5wiCWDvhsvj5jxSrzTmRU/9C1DyB6uToszLs8aifA6NQ7lEQdvFw==}
+    engines: {node: '>= 0.8'}
+    dependencies:
+      '@types/node': 18.11.18
+      require-like: 0.1.2
     dev: false
 
   /events/3.3.0:
@@ -3275,6 +3284,10 @@ packages:
       retext: 8.1.0
       retext-smartypants: 5.2.0
       unist-util-visit: 4.1.1
+    dev: false
+
+  /require-like/0.1.2:
+    resolution: {integrity: sha512-oyrU88skkMtDdauHDuKVrgR+zuItqr6/c//FXzvmxRGMexSDc6hNvJInGW3LL46n+8b50RykrvwSUIIQH2LQ5A==}
     dev: false
 
   /resolve-from/5.0.0:

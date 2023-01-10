@@ -1,5 +1,6 @@
 import type { Plugin } from 'vite';
 import esbuild from 'esbuild';
+import nodeEval from 'eval';
 import postcssScss from 'postcss-scss';
 import postcssNested from 'postcss-nested';
 import hash from './hash.js';
@@ -88,6 +89,7 @@ export const ecsstatic = () => {
 						const expression = quasi.expressions[index];
 						templateContents += evalWithEsbuild(
 							code.slice(expression.start, expression.end),
+							id,
 							inlinedVars
 						);
 					}
@@ -171,23 +173,16 @@ function processImports(ast: Program) {
 
 /**
  * uses esbuild.transform to tree-shake unused var declarations
- * before evaluating it inside the Function constructor
+ * before evaluating it with node_eval
  */
-function evalWithEsbuild(expression: string, allVarDeclarations = '') {
-	const transformed = esbuild.transformSync(
+function evalWithEsbuild(expression: string, filename: string, allVarDeclarations = '') {
+	const treeshaked = esbuild.transformSync(
 		`${allVarDeclarations}\n
-		export const __dontTreeshakeThisForEcsstatic = () => (${expression});`,
-		{
-			format: 'esm',
-			treeShaking: true,
-		}
-	);
-	const treeshakedDeclarations = transformed.code.substring(
-		0,
-		transformed.code.indexOf('const __dontTreeshakeThisForEcsstatic')
+		module.exports = (${expression});`,
+		{ format: 'cjs', treeShaking: true }
 	);
 
-	return new Function(`${treeshakedDeclarations};\nreturn (${expression})`)();
+	return nodeEval(treeshaked.code, filename);
 }
 
 /**
