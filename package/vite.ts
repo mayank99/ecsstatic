@@ -61,15 +61,11 @@ export const ecsstatic = () => {
 			const parsedAst = this.parse(code) as Program;
 			const magicCode = new MagicString(code);
 
-			const ecsstaticImports = processImports(parsedAst);
+			const ecsstaticImports = findEcsstaticImports(parsedAst);
 			if (ecsstaticImports.length === 0) return;
 
-			const cssTemplateDeclarations = parsedAst.body.filter(
-				(node) =>
-					node.type === 'VariableDeclaration' && isCssTaggedTemplateLiteral(node, ecsstaticImports)
-			) as VariableDeclaration[];
-
-			if (cssTemplateDeclarations?.length === 0) return;
+			const cssTemplateDeclarations = findCssTaggedTemplateLiterals(parsedAst, ecsstaticImports);
+			if (cssTemplateDeclarations.length === 0) return;
 
 			const inlinedVars = findAllVariablesUsingEsbuild(id, {
 				parseFn: this.parse,
@@ -146,7 +142,7 @@ function processCss(templateContents: string, originalName: string, isScss = fal
 }
 
 /** parses ast and returns a list of all css/scss ecsstatic imports */
-function processImports(ast: Program) {
+function findEcsstaticImports(ast: Program) {
 	const ecsstaticImports: Array<{
 		importName: string;
 		start: number;
@@ -195,7 +191,7 @@ function findAllVariablesUsingEsbuild(
 	fileId: string,
 	options: {
 		parseFn: (code: string) => unknown;
-		ecsstaticImports: ReturnType<typeof processImports>;
+		ecsstaticImports: ReturnType<typeof findEcsstaticImports>;
 	}
 ) {
 	const { parseFn, ecsstaticImports } = options;
@@ -226,6 +222,24 @@ function findAllVariablesUsingEsbuild(
 	return returnValue;
 }
 
+function findCssTaggedTemplateLiterals(
+	ast: Program,
+	ecsstaticImports: ReturnType<typeof findEcsstaticImports>
+) {
+	return ast.body.flatMap((node) => {
+		const _node = node.type === 'ExportNamedDeclaration' ? node.declaration : node;
+
+		if (
+			_node!.type === 'VariableDeclaration' &&
+			isCssTaggedTemplateLiteral(_node, ecsstaticImports)
+		) {
+			return [_node];
+		}
+
+		return [];
+	}) as VariableDeclaration[];
+}
+
 /**
  * true if a variable declaration matches this format:
  * ```
@@ -235,7 +249,7 @@ function findAllVariablesUsingEsbuild(
  */
 function isCssTaggedTemplateLiteral(
 	node: VariableDeclaration,
-	ecsstaticImports: ReturnType<typeof processImports>
+	ecsstaticImports: ReturnType<typeof findEcsstaticImports>
 ) {
 	const importNames = ecsstaticImports.map(({ importName }) => importName);
 
