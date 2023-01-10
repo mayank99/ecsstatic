@@ -5,7 +5,13 @@ import path from 'path';
 import postcss from 'postcss';
 import postcssNested from 'postcss-nested';
 import postcssScss from 'postcss-scss';
-import type { Identifier, Program, TaggedTemplateExpression, VariableDeclaration } from 'estree';
+import type {
+	Identifier,
+	Program,
+	TaggedTemplateExpression,
+	TemplateLiteral,
+	VariableDeclaration,
+} from 'estree';
 import type { Plugin } from 'vite';
 
 import hash from './hash.js';
@@ -80,19 +86,7 @@ export const ecsstatic = () => {
 					({ importName }) => tag.type === 'Identifier' && importName === tag.name
 				)!;
 
-				let templateContents = '';
-				quasi.quasis.forEach((_quasi, index) => {
-					templateContents += _quasi.value.raw;
-					if (index < quasi.quasis.length - 1) {
-						const expression = quasi.expressions[index];
-						templateContents += evalWithEsbuild(
-							code.slice(expression.start, expression.end),
-							id,
-							inlinedVars
-						);
-					}
-				});
-
+				const templateContents = processTemplateLiteral(quasi, { inlinedVars, originalCode: code });
 				const [css, className] = processCss(templateContents, originalName, isScss);
 
 				// add processed css to a .css file
@@ -141,6 +135,22 @@ function processCss(templateContents: string, originalName: string, isScss = fal
 	return [css, className];
 }
 
+/** resolves all expressions in the template literal and returns a plain string */
+function processTemplateLiteral(quasi: TemplateLiteral, { inlinedVars = '', originalCode = '' }) {
+	let templateContents = '';
+	quasi.quasis.forEach((_quasi, index) => {
+		templateContents += _quasi.value.raw;
+		if (index < quasi.quasis.length - 1) {
+			const expression = quasi.expressions[index];
+			templateContents += evalWithEsbuild(
+				originalCode.slice(expression.start, expression.end),
+				inlinedVars
+			);
+		}
+	});
+	return templateContents;
+}
+
 /** parses ast and returns a list of all css/scss ecsstatic imports */
 function findEcsstaticImports(ast: Program) {
 	const ecsstaticImports: Array<{
@@ -173,14 +183,14 @@ function findEcsstaticImports(ast: Program) {
  * uses esbuild.transform to tree-shake unused var declarations
  * before evaluating it with node_eval
  */
-function evalWithEsbuild(expression: string, filename: string, allVarDeclarations = '') {
+function evalWithEsbuild(expression: string, allVarDeclarations = '') {
 	const treeshaked = esbuild.transformSync(
 		`${allVarDeclarations}\n
 		module.exports = (${expression});`,
 		{ format: 'cjs', treeShaking: true }
 	);
 
-	return nodeEval(treeshaked.code, filename);
+	return nodeEval(treeshaked.code, hash(expression));
 }
 
 /**
