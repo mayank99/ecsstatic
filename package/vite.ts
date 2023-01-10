@@ -1,4 +1,5 @@
 import esbuild from 'esbuild';
+import externalizeAllPackagesExcept from 'esbuild-plugin-noexternal';
 import MagicString from 'magic-string';
 import nodeEval from 'eval';
 import path from 'path';
@@ -16,6 +17,21 @@ import type { Plugin } from 'vite';
 
 import hash from './hash.js';
 
+type Options = {
+	esbuild?: {
+		/**
+		 * Packages that will be resolved when evaluating expressions inside template strings.
+		 * By default, no packages are resolved (everything is "external").
+		 *
+		 * @example
+		 * export default defineConfig({
+		 * 	plugins: [ecsstaticVite({ esbuild: { noExternals: ['open-props'] }})],
+		 * });
+		 */
+		noExternal: string[];
+	};
+};
+
 /**
  * Returns the vite plugin for ecsstatic.
  *
@@ -26,7 +42,8 @@ import hash from './hash.js';
  * 	plugins: [ecsstaticVite()],
  * });
  */
-export const ecsstatic = () => {
+export const ecsstatic = (options?: Options) => {
+	const noExternal = options?.esbuild?.noExternal ?? [];
 	const cssList = new Map<string, string>();
 
 	return <Plugin>{
@@ -59,7 +76,7 @@ export const ecsstatic = () => {
 			}
 		},
 
-		transform(code, id) {
+		async transform(code, id) {
 			[id] = id.split('?');
 			if (/node_modules/.test(id)) return;
 			if (!/(c|m)*(j|t)s(x)*$/.test(id)) return;
@@ -73,9 +90,10 @@ export const ecsstatic = () => {
 			const cssTemplateDeclarations = findCssTaggedTemplateLiterals(parsedAst, ecsstaticImports);
 			if (cssTemplateDeclarations.length === 0) return;
 
-			const inlinedVars = findAllVariablesUsingEsbuild(id, {
+			const inlinedVars = await findAllVariablesUsingEsbuild(id, {
 				parseFn: this.parse,
 				ecsstaticImports,
+				noExternal,
 			});
 
 			cssTemplateDeclarations.forEach((node) => {
@@ -190,31 +208,34 @@ function evalWithEsbuild(expression: string, allVarDeclarations = '') {
 		{ format: 'cjs', treeShaking: true }
 	);
 
-	return nodeEval(treeshaked.code, hash(expression));
+	return nodeEval(treeshaked.code, hash(expression), {}, true);
 }
 
 /**
  * uses esbuild.build to inline all imports, then returns all variable declarations.
  * this can be passed to `evalWithEsbuild` where inline expressions will be resolved correctly.
  */
-function findAllVariablesUsingEsbuild(
+async function findAllVariablesUsingEsbuild(
 	fileId: string,
 	options: {
 		parseFn: (code: string) => unknown;
 		ecsstaticImports: ReturnType<typeof findEcsstaticImports>;
+		noExternal?: string[];
 	}
 ) {
-	const { parseFn, ecsstaticImports } = options;
+	const { parseFn, ecsstaticImports, noExternal: noExternal = [] } = options;
 
 	// this code will have all the imports inlined
-	const processedCode = esbuild.buildSync({
-		entryPoints: [fileId],
-		bundle: true,
-		format: 'esm',
-		write: false,
-		platform: 'node',
-		packages: 'external', // don't resolve packages
-	}).outputFiles[0].text;
+	const processedCode = (
+		await esbuild.build({
+			entryPoints: [fileId],
+			bundle: true,
+			format: 'esm',
+			write: false,
+			platform: 'node',
+			plugins: [externalizeAllPackagesExcept(noExternal)],
+		})
+	).outputFiles[0].text;
 
 	const ast = parseFn(processedCode) as Program;
 
