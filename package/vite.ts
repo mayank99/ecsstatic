@@ -155,18 +155,9 @@ function processCss(templateContents: string, originalName: string, isScss = fal
 
 /** resolves all expressions in the template literal and returns a plain string */
 function processTemplateLiteral(quasi: TemplateLiteral, { inlinedVars = '', originalCode = '' }) {
-	let templateContents = '';
-	quasi.quasis.forEach((_quasi, index) => {
-		templateContents += _quasi.value.raw;
-		if (index < quasi.quasis.length - 1) {
-			const expression = quasi.expressions[index];
-			templateContents += evalWithEsbuild(
-				originalCode.slice(expression.start, expression.end),
-				inlinedVars
-			);
-		}
-	});
-	return templateContents;
+	const rawTemplate = originalCode.slice(quasi.start, quasi.end);
+	const processedTemplate = evalWithEsbuild(rawTemplate, inlinedVars) as string;
+	return processedTemplate;
 }
 
 /** parses ast and returns a list of all css/scss ecsstatic imports */
