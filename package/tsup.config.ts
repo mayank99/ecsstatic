@@ -5,4 +5,5 @@ export default <Options>{
 	clean: true,
 	format: ['cjs', 'esm'],
 	dts: true,
+	splitting: false,
 };
