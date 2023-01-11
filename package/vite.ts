@@ -254,13 +254,7 @@ async function findAllVariablesUsingEsbuild(
 			node.type === 'VariableDeclaration' && !isCssTaggedTemplateLiteral(node, ecsstaticImports)
 	) as VariableDeclaration[];
 
-	let returnValue = '';
-
-	varDeclarations.forEach(({ start, end }) => {
-		returnValue += processedCode.slice(start, end);
-	});
-
-	return returnValue;
+	return varDeclarations.map(({ start, end }) => processedCode.slice(start, end)).join('');
 }
 
 function findCssTaggedTemplateLiterals(
