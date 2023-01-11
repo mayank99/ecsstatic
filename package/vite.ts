@@ -146,9 +146,13 @@ function processCss(templateContents: string, originalName: string, isScss = fal
 	const isImportOrUse = (line: string) =>
 		line.trim().startsWith('@import') || line.trim().startsWith('@use');
 
-	const importsAndUses = templateContents.split('\n').filter(isImportOrUse).join('\n').trim();
+	const importsAndUses = templateContents
+		.split(/\r\n|\r|\n/g)
+		.filter(isImportOrUse)
+		.join('\n')
+		.trim();
 	const codeWithoutImportsAndUses = templateContents
-		.split('\n')
+		.split(/\r\n|\r|\n/g)
 		.filter((line) => !isImportOrUse(line))
 		.join('\n');
 
