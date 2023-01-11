@@ -8,7 +8,7 @@ export default defineConfig({
 	plugins: [
 		react(),
 		ecsstatic({
-			esbuild: { noExternal: ['open-props'] },
+			resolvePackages: ['open-props'],
 		}),
 		Inspect(),
 	],

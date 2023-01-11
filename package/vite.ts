@@ -18,18 +18,18 @@ import type { Plugin } from 'vite';
 import hash from './hash.js';
 
 type Options = {
-	esbuild?: {
-		/**
-		 * Packages that will be resolved when evaluating expressions inside template strings.
-		 * By default, no packages are resolved (everything is "external").
-		 *
-		 * @example
-		 * export default defineConfig({
-		 * 	plugins: [ecsstaticVite({ esbuild: { noExternals: ['open-props'] }})],
-		 * });
-		 */
-		noExternal: string[];
-	};
+	/**
+	 * Array of packages that will be resolved when evaluating expressions inside template strings.
+	 *
+	 * By default, ecsstatic will only try to resolve relative imports; no packages are resolved
+	 * (everything is "external"-ized) because it is faster this way.
+	 *
+	 * @example
+	 * export default defineConfig({
+	 * 	plugins: [ecsstaticVite({ resolvePackages: ['open-props'] })],
+	 * });
+	 */
+	resolvePackages?: string[];
 };
 
 /**
@@ -43,7 +43,7 @@ type Options = {
  * });
  */
 export const ecsstatic = (options?: Options) => {
-	const noExternal = options?.esbuild?.noExternal ?? [];
+	const esbuildNoExternals = options?.resolvePackages ?? [];
 	const cssList = new Map<string, string>();
 
 	return <Plugin>{
@@ -93,7 +93,7 @@ export const ecsstatic = (options?: Options) => {
 			const inlinedVars = await findAllVariablesUsingEsbuild(id, {
 				parseFn: this.parse,
 				ecsstaticImports,
-				noExternal,
+				noExternal: esbuildNoExternals,
 			});
 
 			cssTemplateDeclarations.forEach((node) => {
@@ -223,7 +223,7 @@ async function findAllVariablesUsingEsbuild(
 		noExternal?: string[];
 	}
 ) {
-	const { parseFn, ecsstaticImports, noExternal: noExternal = [] } = options;
+	const { parseFn, ecsstaticImports, noExternal = [] } = options;
 
 	// this code will have all the imports inlined
 	const processedCode = (
@@ -233,7 +233,9 @@ async function findAllVariablesUsingEsbuild(
 			format: 'esm',
 			write: false,
 			platform: 'node',
-			plugins: [externalizeAllPackagesExcept(noExternal)],
+			...(noExternal.length > 0
+				? { plugins: [externalizeAllPackagesExcept(noExternal)] }
+				: { packages: 'external' }),
 		})
 	).outputFiles[0].text;
 
