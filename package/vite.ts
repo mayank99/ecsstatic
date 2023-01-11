@@ -96,6 +96,8 @@ export const ecsstatic = (options?: Options) => {
 				noExternal: esbuildNoExternals,
 			});
 
+			const generatedClases = new Map<string, string>();
+
 			cssTemplateDeclarations.forEach((node) => {
 				const originalName = (node.declarations[0].id as Identifier).name;
 				const { start, end, quasi, tag } = node.declarations[0].init as TaggedTemplateExpression;
@@ -104,8 +106,15 @@ export const ecsstatic = (options?: Options) => {
 					({ importName }) => tag.type === 'Identifier' && importName === tag.name
 				)!;
 
-				const templateContents = processTemplateLiteral(quasi, { inlinedVars, originalCode: code });
+				const templateContents = processTemplateLiteral(quasi, {
+					inlinedVars,
+					originalCode: code,
+					generatedClases: Object.fromEntries(generatedClases),
+				});
 				const [css, className] = processCss(templateContents, originalName, isScss);
+
+				// save all classes generated so far in this file
+				generatedClases.set(originalName, className);
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
@@ -154,10 +163,18 @@ function processCss(templateContents: string, originalName: string, isScss = fal
 }
 
 /** resolves all expressions in the template literal and returns a plain string */
-function processTemplateLiteral(quasi: TemplateLiteral, { inlinedVars = '', originalCode = '' }) {
-	const rawTemplate = originalCode.slice(quasi.start, quasi.end);
-	const processedTemplate = evalWithEsbuild(rawTemplate, inlinedVars) as string;
-	return processedTemplate;
+function processTemplateLiteral(
+	quasi: TemplateLiteral,
+	{ inlinedVars = '', originalCode = '', generatedClases = {} }
+) {
+	try {
+		const rawTemplate = originalCode.slice(quasi.start, quasi.end);
+		const processedTemplate = evalWithEsbuild(rawTemplate, inlinedVars, generatedClases) as string;
+		return processedTemplate;
+	} catch (err) {
+		console.error('Unable to resolve expression in template literal');
+		throw err;
+	}
 }
 
 /** parses ast and returns a list of all css/scss ecsstatic imports */
@@ -192,14 +209,14 @@ function findEcsstaticImports(ast: Program) {
  * uses esbuild.transform to tree-shake unused var declarations
  * before evaluating it with node_eval
  */
-function evalWithEsbuild(expression: string, allVarDeclarations = '') {
+function evalWithEsbuild(expression: string, allVarDeclarations = '', generatedClases = {}) {
 	const treeshaked = esbuild.transformSync(
 		`${allVarDeclarations}\n
 		module.exports = (${expression});`,
 		{ format: 'cjs', treeShaking: true }
 	);
 
-	return nodeEval(treeshaked.code, hash(expression), {}, true);
+	return nodeEval(treeshaked.code, hash(expression), generatedClases, true);
 }
 
 /**
