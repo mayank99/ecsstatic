@@ -139,7 +139,7 @@ export const ecsstatic = (options?: Options) => {
 };
 
 /**
- * processes template strings using postcss-nested and
+ * processes template strings using postcss and
  * returns it along with a hashed classname based on the string contents.
  */
 function processCss(templateContents: string, originalName: string, isScss = false) {
