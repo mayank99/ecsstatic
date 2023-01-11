@@ -33,6 +33,19 @@ type Options = {
 };
 
 /**
+ * will use `:where` to keep specificity flat when nesting classnames like this:
+ * ```
+ * const foo = css`...`;
+ * const bar = css`
+ *   ${foo} & {
+ *     // ...
+ *   }
+ * `;
+ * ```
+ */
+const useWhere = true;
+
+/**
  * Returns the vite plugin for ecsstatic.
  *
  * @example
@@ -113,8 +126,8 @@ export const ecsstatic = (options?: Options) => {
 				});
 				const [css, className] = processCss(templateContents, originalName, isScss);
 
-				// save all classes generated so far in this file
-				generatedClassses.set(originalName, className);
+				// save all classes generated so far in this file but use `:where` by default
+				generatedClassses.set(originalName, useWhere ? `:where(.${className})` : `.${className}`);
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
