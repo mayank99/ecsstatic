@@ -96,7 +96,7 @@ export const ecsstatic = (options?: Options) => {
 				noExternal: esbuildNoExternals,
 			});
 
-			const generatedClases = new Map<string, string>();
+			const generatedClassses = new Map<string, string>();
 
 			cssTemplateDeclarations.forEach((node) => {
 				const originalName = (node.declarations[0].id as Identifier).name;
@@ -109,12 +109,12 @@ export const ecsstatic = (options?: Options) => {
 				const templateContents = processTemplateLiteral(quasi, {
 					inlinedVars,
 					originalCode: code,
-					generatedClases: Object.fromEntries(generatedClases),
+					generatedClases: Object.fromEntries(generatedClassses),
 				});
 				const [css, className] = processCss(templateContents, originalName, isScss);
 
 				// save all classes generated so far in this file
-				generatedClases.set(originalName, className);
+				generatedClassses.set(originalName, className);
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
