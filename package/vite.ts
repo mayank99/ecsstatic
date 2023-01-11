@@ -257,6 +257,7 @@ async function findAllVariablesUsingEsbuild(
 	return varDeclarations.map(({ start, end }) => processedCode.slice(start, end)).join('');
 }
 
+/** filters the ast to all variable declarations matching `isCssTaggedTemplateLiteral` */
 function findCssTaggedTemplateLiterals(
 	ast: Program,
 	ecsstaticImports: ReturnType<typeof findEcsstaticImports>
