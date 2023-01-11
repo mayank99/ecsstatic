@@ -17,10 +17,6 @@ import type { Plugin } from 'vite';
 
 import hash from './hash.js';
 
-// disable the ability to use classes returned by css`...` inside of template literals
-// because we first need support for this.load() -- https://github.com/vitejs/vite/pull/11469
-const shouldResolveClasses = false;
-
 type Options = {
 	/**
 	 * Array of packages that will be resolved when evaluating expressions inside template strings.
@@ -117,10 +113,8 @@ export const ecsstatic = (options?: Options) => {
 				});
 				const [css, className] = processCss(templateContents, originalName, isScss);
 
-				if (shouldResolveClasses) {
-					// save all classes generated so far in this file
-					generatedClassses.set(originalName, className);
-				}
+				// save all classes generated so far in this file
+				generatedClassses.set(originalName, className);
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
