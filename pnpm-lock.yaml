@@ -62,7 +62,7 @@ importers:
       '@types/estree': ^1.0.0
       '@types/node': ^18.11.18
       esbuild: ^0.16.16
-      esbuild-plugin-noexternal: ^0.1.2
+      esbuild-plugin-noexternal: ^0.1.3
       eval: ^0.1.8
       magic-string: ^0.27.0
       postcss: ^8.4.19
@@ -72,7 +72,7 @@ importers:
       vite: ^4.0.0
     dependencies:
       esbuild: 0.16.16
-      esbuild-plugin-noexternal: 0.1.2
+      esbuild-plugin-noexternal: 0.1.3
       eval: 0.1.8
       magic-string: 0.27.0
       postcss: 8.4.21
@@ -1535,8 +1535,8 @@ packages:
     dev: true
     optional: true
 
-  /esbuild-plugin-noexternal/0.1.2:
-    resolution: {integrity: sha512-3Lv8PEpvyntK7K33CjmO/SYN2rtNVouYMWzidvBIXS3wwmTZkl8DegvDvfIk6LmXj1PGJGFYN9wxOeVdV5QucQ==}
+  /esbuild-plugin-noexternal/0.1.3:
+    resolution: {integrity: sha512-RqKmIWNkc56f5AiIVtBZnAcq79RgdgG4WOv/iZF3tSy5dQSym5iC9dt1iaMjlTpF88AbDLuJxF2xfQ56+6NVMQ==}
     dev: false
 
   /esbuild-sunos-64/0.15.18:
