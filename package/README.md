@@ -1,6 +1,6 @@
 # ecsstatic
 
-a static css-in-js library for the modern web. made specifically for vite.
+a modern css-in-js library made specifically for vite.
 
 - fully static. compiles away like it never existed.
 - uses regular css syntax, not javascript objects.
