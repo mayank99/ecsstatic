@@ -55,7 +55,7 @@ const useWhere = true;
  * 	plugins: [ecsstatic()],
  * });
  */
-export const ecsstatic = (options?: Options) => {
+export function ecsstatic(options?: Options) {
 	const esbuildNoExternals = options?.resolvePackages ?? [];
 	const cssList = new Map<string, string>();
 
@@ -149,7 +149,7 @@ export const ecsstatic = (options?: Options) => {
 			};
 		},
 	};
-};
+}
 
 /**
  * processes template strings using postcss and
