@@ -258,9 +258,7 @@ async function findAllVariablesUsingEsbuild(
 			format: 'esm',
 			write: false,
 			platform: 'node',
-			...(noExternal.length > 0
-				? { plugins: [externalizeAllPackagesExcept(noExternal)] }
-				: { packages: 'external' }),
+			plugins: [externalizeAllPackagesExcept([...noExternal, '@acab/ecsstatic'])],
 		})
 	).outputFiles[0].text;
 
