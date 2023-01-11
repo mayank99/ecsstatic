@@ -26,7 +26,7 @@ type Options = {
 	 *
 	 * @example
 	 * export default defineConfig({
-	 * 	plugins: [ecsstaticVite({ resolvePackages: ['open-props'] })],
+	 * 	plugins: [ecsstatic({ resolvePackages: ['open-props'] })],
 	 * });
 	 */
 	resolvePackages?: string[];
@@ -36,10 +36,10 @@ type Options = {
  * Returns the vite plugin for ecsstatic.
  *
  * @example
- * import { ecsstaticVite } from '@acab/ecsstatic';
+ * import { ecsstatic } from '@acab/ecsstatic/vite';
  *
  * export default defineConfig({
- * 	plugins: [ecsstaticVite()],
+ * 	plugins: [ecsstatic()],
  * });
  */
 export const ecsstatic = (options?: Options) => {

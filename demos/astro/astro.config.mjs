@@ -1,10 +1,10 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import { ecsstaticVite } from '@acab/ecsstatic';
+import { ecsstatic } from '@acab/ecsstatic/vite';
 
 export default defineConfig({
 	vite: {
-		plugins: [ecsstaticVite()],
+		plugins: [ecsstatic()],
 	},
 	integrations: [react()],
 });
