@@ -117,21 +117,25 @@ export function ecsstatic(options?: Options) {
 			const cssTemplateDeclarations = findCssTaggedTemplateLiterals(parsedAst, ecsstaticImports);
 			if (cssTemplateDeclarations.length === 0) return;
 
-			const inlinedVars = await findAllVariablesUsingEsbuild(id, {
-				parseFn: this.parse,
-				ecsstaticImports,
-				noExternal: esbuildNoExternals,
-			});
-
+			let inlinedVars = '';
 			const generatedClassses = new Map<string, string>();
 
-			cssTemplateDeclarations.forEach((node) => {
+			for (const node of cssTemplateDeclarations) {
 				const originalName = (node.declarations[0].id as Identifier).name;
 				const { start, end, quasi, tag } = node.declarations[0].init as TaggedTemplateExpression;
 
 				const { isScss } = ecsstaticImports.find(
 					({ importName }) => tag.type === 'Identifier' && importName === tag.name
 				)!;
+
+				// lazy populate inlinedVars until we need it, to delay problems that come with this mess
+				if (quasi.expressions.length && !inlinedVars) {
+					inlinedVars = await findAllVariablesUsingEsbuild(id, {
+						parseFn: this.parse,
+						ecsstaticImports,
+						noExternal: esbuildNoExternals,
+					});
+				}
 
 				const templateContents = processTemplateLiteral(quasi, {
 					inlinedVars,
@@ -152,7 +156,7 @@ export function ecsstatic(options?: Options) {
 
 				// replace the tagged template literal with the generated className
 				magicCode.update(start, end, `"${className}"`);
-			});
+			}
 
 			// remove ecsstatic imports, we don't need them anymore
 			ecsstaticImports.forEach(({ start, end }) => magicCode.update(start, end, ''));
