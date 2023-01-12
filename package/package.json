@@ -8,9 +8,9 @@
 		"url": "git+https://github.com/mayank99/ecsstatic.git"
 	},
 	"type": "module",
-	"main": "index.cjs",
-	"module": "index.js",
-	"types": "index.d.ts",
+	"main": "dist/index.cjs",
+	"module": "dist/index.js",
+	"types": "dist/index.d.ts",
 	"files": [
 		"dist"
 	],
