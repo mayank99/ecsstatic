@@ -13,7 +13,7 @@ import type {
 	TemplateLiteral,
 	VariableDeclaration,
 } from 'estree';
-import type { Plugin } from 'vite';
+import type { Plugin, ResolvedConfig } from 'vite';
 
 import hash from './hash.js';
 
@@ -58,9 +58,14 @@ const useWhere = true;
 export function ecsstatic(options?: Options) {
 	const esbuildNoExternals = options?.resolvePackages ?? [];
 	const cssList = new Map<string, string>();
+	let viteConfigObj: ResolvedConfig;
 
 	return <Plugin>{
 		name: 'ecsstatic',
+
+		configResolved(_config: ResolvedConfig) {
+			viteConfigObj = _config;
+		},
 
 		buildStart() {
 			cssList.clear();
@@ -74,7 +79,13 @@ export function ecsstatic(options?: Options) {
 			if (!importer) return;
 
 			if (id.endsWith('css')) {
+				// relative to absolute
 				if (id.startsWith('.')) id = normalizePath(path.join(path.dirname(importer), id));
+
+				if (!cssList.has(id)) {
+					// sometimes we need to resolve it based on the root
+					id = normalizePath(path.join(viteConfigObj.root, id.startsWith('/') ? id.slice(1) : id));
+				}
 
 				if (cssList.has(id)) {
 					return id;
