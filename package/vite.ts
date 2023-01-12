@@ -74,7 +74,8 @@ export function ecsstatic(options?: Options) {
 			if (!importer) return;
 
 			if (id.endsWith('css')) {
-				if (id.startsWith('.')) id = normalizePath(new URL(id, importer).href);
+				if (id.startsWith('.')) id = normalizePath(path.join(path.dirname(importer), id));
+
 				if (cssList.has(id)) {
 					return id;
 				}
@@ -258,6 +259,11 @@ async function findAllVariablesUsingEsbuild(
 			format: 'esm',
 			write: false,
 			platform: 'node',
+			logLevel: 'error',
+			loader: {
+				'.css': 'empty',
+				'.svg': 'empty',
+			},
 			plugins: [externalizeAllPackagesExcept([...noExternal, '@acab/ecsstatic'])],
 		})
 	).outputFiles[0].text;
