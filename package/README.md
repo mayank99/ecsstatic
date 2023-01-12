@@ -8,6 +8,8 @@ a modern css-in-js library made specifically for vite.
 - suppports sass-like nesting, including `@media`, `@container`, and `@layer`.
 - supports sass itself!
 
+try it on [stackblitz](https://stackblitz.com/edit/vitejs-vite-jesvnk?file=src%2FApp.tsx,src%2FLogo.tsx,src%2FButton.tsx&terminal=dev).
+
 ## Usage
 
 Install:
@@ -22,7 +24,7 @@ Add the vite plugin to your config:
 import { ecsstatic } from '@acab/ecsstatic/vite';
 
 export default defineConfig({
-  plugins: [ecsstatic()],
+	plugins: [ecsstatic()],
 });
 ```
 
@@ -32,21 +34,21 @@ Start using it:
 import { css } from '@acab/ecsstatic';
 
 export const Button = (props) => {
-  return <button className={button} {...props} />;
+	return <button className={button} {...props} />;
 };
 
 const button = css`
-  all: unset;
-  font: inherit;
-  color: #862e9c;
-  border: 1px solid;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
+	all: unset;
+	font: inherit;
+	color: #862e9c;
+	border: 1px solid;
+	border-radius: 4px;
+	padding: 0.5rem 1rem;
 
-  &:hover,
-  &:focus {
-    color: #be4bdb;
-  }
+	&:hover,
+	&:focus {
+		color: #be4bdb;
+	}
 `;
 ```
 
@@ -56,7 +58,7 @@ Or with Sass:
 import { scss } from '@acab/ecsstatic';
 
 export const Button = (props) => {
-  return <button className={button} {...props} />;
+	return <button className={button} {...props} />;
 };
 
 const button = scss`
