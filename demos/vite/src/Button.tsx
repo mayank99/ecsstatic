@@ -1,29 +1,22 @@
+import * as React from 'react';
 import { scss } from '@acab/ecsstatic';
-import { useState } from 'react';
-// @ts-ignore
-import { Indigo } from 'open-props/src/colors';
 
-export default () => {
-	const [count, setCount] = useState(0);
-
-	return (
-		<>
-			<span>{count}</span>
-			<div className={poo}>Hi</div>
-			<button onClick={() => setCount(count + 1)}>+</button>
-		</>
-	);
+export default (props: React.ComponentProps<'button'>) => {
+	return <button className={button} {...props} />;
 };
 
-const poo = scss`
+const button = scss`
 	@use 'open-props-scss' as op;
 
-	@layer component {
-		--test: ${Indigo['--indigo-0']};
-		color: op.$purple-9;
+	all: unset;
+	font: inherit;
+	color: op.$purple-9;
+	border: 1px solid;
+	border-radius: 4px;
+	padding: 0.5rem 1rem;
+	transition: color 0.2s;
 
-		&:hover {
-			color: op.$purple-8;
-		}
+	&:hover {
+		color: op.$purple-6;
 	}
 `;
