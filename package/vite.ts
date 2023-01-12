@@ -28,6 +28,8 @@ type Options = {
 	 * export default defineConfig({
 	 * 	plugins: [ecsstatic({ resolvePackages: ['open-props'] })],
 	 * });
+	 *
+	 * @deprecated This option will likely be renamed in the next release. It is undocumented for a reason! 😅
 	 */
 	resolvePackages?: string[];
 };
