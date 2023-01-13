@@ -8,7 +8,9 @@ export default defineConfig({
 	plugins: [
 		react(),
 		ecsstatic({
-			resolvePackages: ['open-props'],
+			evaluateExpressions: {
+				resolvePackages: ['open-props'],
+			},
 		}),
 		Inspect(),
 	],
