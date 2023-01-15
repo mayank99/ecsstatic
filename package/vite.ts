@@ -154,11 +154,7 @@ export function ecsstatic(options: Options = {}) {
 
 				// lazy populate inlinedVars until we need it, to delay problems that come with this mess
 				if (quasi.expressions.length && resolveImports && !inlinedVars) {
-					inlinedVars = await findAllVariablesUsingEsbuild(id, {
-						parseFn: this.parse,
-						ecsstaticImportNames,
-						noExternal: resolvePackages,
-					});
+					inlinedVars = await inlineImportsUsingEsbuild(id, { noExternal: resolvePackages });
 				}
 
 				const rawTemplate = code.slice(quasi.start, quasi.end).trim();
@@ -277,21 +273,10 @@ function evalWithEsbuild(expression: string, allVarDeclarations = '', generatedC
 	return nodeEval(treeshaked.code, hash(expression), generatedClasses, true);
 }
 
-/**
- * uses esbuild.build to inline all imports, then returns all top-level variable declarations.
- * this can be passed to `evalWithEsbuild` where inline expressions will be resolved correctly.
- */
-async function findAllVariablesUsingEsbuild(
-	fileId: string,
-	options: {
-		parseFn: (code: string) => unknown;
-		ecsstaticImportNames: string[];
-		noExternal?: string[];
-	}
-) {
-	const { parseFn, ecsstaticImportNames, noExternal = [] } = options;
+/** uses esbuild.build to resolve all imports and return the "bundled" code */
+async function inlineImportsUsingEsbuild(fileId: string, options: { noExternal?: string[] }) {
+	const { noExternal = [] } = options;
 
-	// this code will have all the imports inlined
 	const processedCode = (
 		await esbuild.build({
 			entryPoints: [fileId],
@@ -304,18 +289,14 @@ async function findAllVariablesUsingEsbuild(
 				'.css': 'empty',
 				'.svg': 'empty',
 			},
+			keepNames: true,
 			plugins: [loadDummyEcsstatic(), externalizeAllPackagesExcept(noExternal)],
 		})
 	).outputFiles[0].text;
 
-	const ast = parseFn(processedCode) as Program;
+	// TODO: remove unneeded code, most importantly class name assignments
 
-	const varDeclarations = ast.body.filter(
-		(node) =>
-			node.type === 'VariableDeclaration' && !isCssTaggedTemplateLiteral(node, ecsstaticImportNames)
-	) as VariableDeclaration[];
-
-	return varDeclarations.map(({ start, end }) => processedCode.slice(start, end)).join('');
+	return processedCode;
 }
 
 /** walks the ast to find all tagged template literals that look like (css`...`) */
@@ -347,21 +328,6 @@ function findCssTaggedTemplateLiterals(ast: Program, tagNames: string[]) {
 	});
 
 	return nodes;
-}
-
-/**
- * true if a variable declaration matches this format:
- * ```
- * const x = css`...`;
- * const y = scss`...`;
- * ```
- */
-function isCssTaggedTemplateLiteral(node: VariableDeclaration, ecsstaticImportNames: string[]) {
-	return (
-		node.declarations[0].init?.type === 'TaggedTemplateExpression' &&
-		node.declarations[0].init.tag.type === 'Identifier' &&
-		ecsstaticImportNames.includes(node.declarations[0].init.tag.name)
-	);
 }
 
 /** esbuild plugin that resolves and loads a dummy version of ecsstatic */
