@@ -167,8 +167,10 @@ export function ecsstatic(options: Options = {}) {
 					: rawTemplate;
 				const [css, className] = processCss(templateContents, originalName, isScss);
 
-				// save all classes generated so far in this file but use `:where` by default
-				generatedClasses.set(originalName, useWhere ? `:where(.${className})` : `.${className}`);
+				// save all classes that we know are assigned to variables in this file, but use `:where`
+				if (originalName !== '🎈') {
+					generatedClasses.set(originalName, useWhere ? `:where(.${className})` : `.${className}`);
+				}
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
