@@ -353,9 +353,6 @@ function findCssTaggedTemplateLiterals(ast: Program, tagNames: string[]) {
 
 /** esbuild plugin that resolves and loads a dummy version of ecsstatic */
 function loadDummyEcsstatic() {
-	const consoleErrorToShow =
-		'Something went wrong when evaluating expressions. If you are trying to interpolate class names, try moving the css`...` assignment to a top-level variable in the same file.';
-
 	return <esbuild.Plugin>{
 		name: 'load-dummy-ecsstatic',
 		setup(build) {
@@ -367,9 +364,8 @@ function loadDummyEcsstatic() {
 			});
 			build.onLoad({ filter: /(.*)/, namespace: 'ecsstatic' }, () => {
 				return {
+					contents: 'export const css = () => "🎈"; export const scss = () => "🎈";',
 					loader: 'js',
-					contents: `export function css() { throw new Error("${consoleErrorToShow}"); }\n
-					export function scss() { throw new Error("${consoleErrorToShow}"); }`,
 				};
 			});
 		},
