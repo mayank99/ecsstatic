@@ -270,14 +270,14 @@ function evalWithEsbuild(expression: string, allVarDeclarations = '', generatedC
 	const treeshaked = esbuild.transformSync(
 		`${allVarDeclarations}\n
 		module.exports = (${expression});`,
-		{ format: 'cjs', treeShaking: true }
+		{ format: 'cjs', target: 'node14', treeShaking: true }
 	);
 
 	return nodeEval(treeshaked.code, hash(expression), generatedClasses, true);
 }
 
 /**
- * uses esbuild.build to inline all imports, then returns all variable declarations.
+ * uses esbuild.build to inline all imports, then returns all top-level variable declarations.
  * this can be passed to `evalWithEsbuild` where inline expressions will be resolved correctly.
  */
 async function findAllVariablesUsingEsbuild(
@@ -303,7 +303,7 @@ async function findAllVariablesUsingEsbuild(
 				'.css': 'empty',
 				'.svg': 'empty',
 			},
-			plugins: [externalizeAllPackagesExcept([...noExternal, '@acab/ecsstatic'])],
+			plugins: [loadDummyEcsstatic(), externalizeAllPackagesExcept(noExternal)],
 		})
 	).outputFiles[0].text;
 
@@ -370,6 +370,27 @@ function isCssTaggedTemplateLiteral(
 		node.declarations[0].init.tag.type === 'Identifier' &&
 		importNames.includes(node.declarations[0].init.tag.name)
 	);
+}
+
+/** esbuild plugin that resolves and loads a dummy version of ecsstatic */
+function loadDummyEcsstatic() {
+	return <esbuild.Plugin>{
+		name: 'load-dummy-ecsstatic',
+		setup(build) {
+			build.onResolve({ filter: /^@acab\/ecsstatic$/ }, (args) => {
+				return {
+					namespace: 'ecsstatic',
+					path: args.path,
+				};
+			});
+			build.onLoad({ filter: /(.*)/, namespace: 'ecsstatic' }, () => {
+				return {
+					contents: 'export const css = () => "🎈"; export const scss = () => "🎈";',
+					loader: 'js',
+				};
+			});
+		},
+	};
 }
 
 function normalizePath(original: string) {
