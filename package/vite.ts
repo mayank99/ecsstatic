@@ -131,10 +131,16 @@ export function ecsstatic(options: Options = {}) {
 
 			const parsedAst = this.parse(code) as Program;
 
-			const ecsstaticImports = findEcsstaticImports(parsedAst);
-			if (ecsstaticImports.length === 0) return;
+			const {
+				cssImportName,
+				scssImportName,
+				statements: ecsstaticImportStatements,
+			} = findEcsstaticImports(parsedAst);
+			if (ecsstaticImportStatements.length === 0) return;
 
-			const cssTemplateLiterals = findCssTaggedTemplateLiterals(parsedAst, ecsstaticImports);
+			const ecsstaticImportNames = [cssImportName, scssImportName].filter(Boolean) as string[];
+
+			const cssTemplateLiterals = findCssTaggedTemplateLiterals(parsedAst, ecsstaticImportNames);
 			if (cssTemplateLiterals.length === 0) return;
 
 			const magicCode = new MagicString(code);
@@ -144,16 +150,13 @@ export function ecsstatic(options: Options = {}) {
 			for (const node of cssTemplateLiterals) {
 				const originalName = node._originalName || '🎈';
 				const { start, end, quasi, tag } = node;
-
-				const { isScss } = ecsstaticImports.find(
-					({ importName }) => tag.type === 'Identifier' && importName === tag.name
-				)!;
+				const isScss = tag.type === 'Identifier' && tag.name === scssImportName;
 
 				// lazy populate inlinedVars until we need it, to delay problems that come with this mess
 				if (quasi.expressions.length && resolveImports && !inlinedVars) {
 					inlinedVars = await findAllVariablesUsingEsbuild(id, {
 						parseFn: this.parse,
-						ecsstaticImports,
+						ecsstaticImportNames,
 						noExternal: resolvePackages,
 					});
 				}
@@ -185,7 +188,7 @@ export function ecsstatic(options: Options = {}) {
 			}
 
 			// remove ecsstatic imports, we don't need them anymore
-			ecsstaticImports.forEach(({ start, end }) => magicCode.update(start, end, ''));
+			ecsstaticImportStatements.forEach(({ start, end }) => magicCode.update(start, end, ''));
 
 			return {
 				code: magicCode.toString(),
@@ -234,32 +237,30 @@ function processTemplateLiteral(rawTemplate: string, { inlinedVars = '', generat
 	}
 }
 
-/** parses ast and returns a list of all css/scss ecsstatic imports */
+/** parses ast and returns info about all css/scss ecsstatic imports */
 function findEcsstaticImports(ast: Program) {
-	const ecsstaticImports: Array<{
-		importName: string;
-		start: number;
-		end: number;
-		isScss: boolean;
-	}> = [];
+	let cssImportName: string | undefined;
+	let scssImportName: string | undefined;
+	let statements: Array<{ start: number; end: number }> = [];
 
 	for (const node of ast.body.filter((node) => node.type === 'ImportDeclaration')) {
 		if (node.type === 'ImportDeclaration' && node.source.value === '@acab/ecsstatic') {
-			const importSpecifier = node.specifiers[0];
-			if (
-				importSpecifier.type === 'ImportSpecifier' &&
-				['css', 'scss'].includes(importSpecifier.imported.name)
-			) {
-				const importName = importSpecifier.local.name;
-				const isScss = importSpecifier.imported.name === 'scss';
-				const { start, end } = node;
-
-				ecsstaticImports.push({ importName, start, end, isScss });
+			const { start, end } = node;
+			if (node.specifiers.some(({ imported }: any) => ['css', 'scss'].includes(imported.name))) {
+				statements.push({ start, end });
 			}
+			node.specifiers.forEach((specifier) => {
+				if (specifier.type === 'ImportSpecifier' && specifier.imported.name === 'css') {
+					cssImportName = specifier.local.name;
+				}
+				if (specifier.type === 'ImportSpecifier' && specifier.imported.name === 'scss') {
+					scssImportName = specifier.local.name;
+				}
+			});
 		}
 	}
 
-	return ecsstaticImports;
+	return { cssImportName, scssImportName, statements };
 }
 
 /**
@@ -284,11 +285,11 @@ async function findAllVariablesUsingEsbuild(
 	fileId: string,
 	options: {
 		parseFn: (code: string) => unknown;
-		ecsstaticImports: ReturnType<typeof findEcsstaticImports>;
+		ecsstaticImportNames: string[];
 		noExternal?: string[];
 	}
 ) {
-	const { parseFn, ecsstaticImports, noExternal = [] } = options;
+	const { parseFn, ecsstaticImportNames, noExternal = [] } = options;
 
 	// this code will have all the imports inlined
 	const processedCode = (
@@ -311,20 +312,16 @@ async function findAllVariablesUsingEsbuild(
 
 	const varDeclarations = ast.body.filter(
 		(node) =>
-			node.type === 'VariableDeclaration' && !isCssTaggedTemplateLiteral(node, ecsstaticImports)
+			node.type === 'VariableDeclaration' && !isCssTaggedTemplateLiteral(node, ecsstaticImportNames)
 	) as VariableDeclaration[];
 
 	return varDeclarations.map(({ start, end }) => processedCode.slice(start, end)).join('');
 }
 
 /** walks the ast to find all tagged template literals that look like (css`...`) */
-function findCssTaggedTemplateLiterals(
-	ast: Program,
-	ecsstaticImports: ReturnType<typeof findEcsstaticImports>
-) {
+function findCssTaggedTemplateLiterals(ast: Program, tagNames: string[]) {
 	type TaggedTemplateWithName = TaggedTemplateExpression & { _originalName?: string };
 
-	const tagNames = ecsstaticImports.map(({ importName }) => importName);
 	let nodes: Array<TaggedTemplateWithName> = [];
 
 	walk(ast as any, {
@@ -359,16 +356,11 @@ function findCssTaggedTemplateLiterals(
  * const y = scss`...`;
  * ```
  */
-function isCssTaggedTemplateLiteral(
-	node: VariableDeclaration,
-	ecsstaticImports: ReturnType<typeof findEcsstaticImports>
-) {
-	const importNames = ecsstaticImports.map(({ importName }) => importName);
-
+function isCssTaggedTemplateLiteral(node: VariableDeclaration, ecsstaticImportNames: string[]) {
 	return (
 		node.declarations[0].init?.type === 'TaggedTemplateExpression' &&
 		node.declarations[0].init.tag.type === 'Identifier' &&
-		importNames.includes(node.declarations[0].init.tag.name)
+		ecsstaticImportNames.includes(node.declarations[0].init.tag.name)
 	);
 }
 

@@ -77,4 +77,3 @@ const button = scss`
 ## Current limitations
 
 - Resolving variables interpolated in the template strings does not work for all cases.
-- `css` and `scss` imports cannot be used together.
