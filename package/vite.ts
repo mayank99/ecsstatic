@@ -264,8 +264,14 @@ function findEcsstaticImports(ast: Program) {
  * before evaluating it with node_eval
  */
 function evalWithEsbuild(expression: string, allVarDeclarations = '', generatedClasses = {}) {
+	// we will manually inject this after allVarDeclarations to prevent shadowing
+	const generatedClassesDecls = Object.entries(generatedClasses)
+		.map(([key, value]) => `var ${key} = '${value}';`)
+		.join('\n');
+
 	const treeshaked = esbuild.transformSync(
 		`${allVarDeclarations}\n
+		${generatedClassesDecls}\n
 		module.exports = (${expression});`,
 		{ format: 'cjs', target: 'node14', treeShaking: true }
 	);
