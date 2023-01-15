@@ -7,7 +7,7 @@ import postcss from 'postcss';
 import postcssNested from 'postcss-nested';
 import postcssScss from 'postcss-scss';
 import { ancestor as walk } from 'acorn-walk';
-import type { Node, Program, TaggedTemplateExpression, VariableDeclaration } from 'estree';
+import type { Node, Program, TaggedTemplateExpression } from 'estree';
 import type { Plugin, ResolvedConfig } from 'vite';
 
 import hash from './hash.js';
