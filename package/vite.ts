@@ -13,7 +13,7 @@ import hash from './hash.js';
 
 type Options = {
 	/**
-	 * Should ecsstatic attempt to evaluate expressions (including other class names) used in the template literal.
+	 * Should ecsstatic attempt to evaluate expressions (including other class names) used in the template literal?
 	 *
 	 * Enabling this will only evalulate expressions defined in the same file, which is pretty safe, so it's on by default.
 	 *
