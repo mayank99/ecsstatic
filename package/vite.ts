@@ -130,7 +130,6 @@ export function ecsstatic(options: Options = {}) {
 			if (!/(c|m)*(j|t)s(x)*$/.test(id)) return;
 
 			const parsedAst = this.parse(code) as Program;
-			const magicCode = new MagicString(code);
 
 			const ecsstaticImports = findEcsstaticImports(parsedAst);
 			if (ecsstaticImports.length === 0) return;
@@ -138,6 +137,7 @@ export function ecsstatic(options: Options = {}) {
 			const cssTemplateLiterals = findCssTaggedTemplateLiterals(parsedAst, ecsstaticImports);
 			if (cssTemplateLiterals.length === 0) return;
 
+			const magicCode = new MagicString(code);
 			let inlinedVars = '';
 			const generatedClasses = new Map<string, string>();
 
