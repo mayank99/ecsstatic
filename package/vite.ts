@@ -158,13 +158,14 @@ export function ecsstatic(options: Options = {}) {
 					});
 				}
 
-				const rawTemplate = code.slice(quasi.start, quasi.end);
-				const templateContents = evaluateExpressions
-					? processTemplateLiteral(rawTemplate, {
-							inlinedVars,
-							generatedClasses: Object.fromEntries(generatedClasses),
-					  })
-					: rawTemplate;
+				const rawTemplate = code.slice(quasi.start, quasi.end).trim();
+				const templateContents =
+					evaluateExpressions && quasi.expressions.length
+						? processTemplateLiteral(rawTemplate, {
+								inlinedVars,
+								generatedClasses: Object.fromEntries(generatedClasses),
+						  })
+						: rawTemplate.slice(1, rawTemplate.length - 2);
 				const [css, className] = processCss(templateContents, originalName, isScss);
 
 				// save all classes that we know are assigned to variables in this file, but use `:where`
