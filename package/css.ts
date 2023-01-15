@@ -1,7 +1,5 @@
 /**
- * Returns a scoped className for the CSS provided in the template string.
- *
- * Must be used outside the component at the top level of a file.
+ * Returns a scoped class name for the CSS provided in the template string.
  *
  * @example
  * import { css } from '@acab/ecsstatic';
