@@ -262,14 +262,14 @@ function findEcsstaticImports(ast: Program) {
  * uses esbuild.transform to tree-shake unused var declarations
  * before evaluating it with node_eval
  */
-function evalWithEsbuild(expression: string, allVarDeclarations = '', generatedClases = {}) {
+function evalWithEsbuild(expression: string, allVarDeclarations = '', generatedClasses = {}) {
 	const treeshaked = esbuild.transformSync(
 		`${allVarDeclarations}\n
 		module.exports = (${expression});`,
 		{ format: 'cjs', treeShaking: true }
 	);
 
-	return nodeEval(treeshaked.code, hash(expression), generatedClases, true);
+	return nodeEval(treeshaked.code, hash(expression), generatedClasses, true);
 }
 
 /**
