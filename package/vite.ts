@@ -318,14 +318,29 @@ function findCssTaggedTemplateLiterals(ast: Program, tagNames: string[]) {
 			if (_node.tag.type === 'Identifier' && tagNames.includes(_node.tag.name)) {
 				// last node is the current node, so we look at the second last node to find a name
 				const prevNode = (ancestors as any[]).at(-2) as Node;
-				if (
-					prevNode &&
-					prevNode.type === 'VariableDeclarator' &&
-					prevNode.id.type === 'Identifier' &&
-					prevNode.init?.start === _node.start &&
-					prevNode.init?.end === _node.end
-				) {
-					_node._originalName = prevNode.id.name;
+
+				switch (prevNode?.type) {
+					case 'VariableDeclarator': {
+						if (
+							prevNode.id.type === 'Identifier' &&
+							prevNode.init?.start === _node.start &&
+							prevNode.init?.end === _node.end
+						) {
+							_node._originalName = prevNode.id.name;
+						}
+						break;
+					}
+					case 'Property': {
+						if (
+							prevNode.type === 'Property' &&
+							prevNode.value.start === _node.start &&
+							prevNode.value.end === _node.end &&
+							prevNode.key.type === 'Identifier'
+						) {
+							_node._originalName = prevNode.key.name;
+						}
+						break;
+					}
 				}
 
 				nodes.push(_node);
