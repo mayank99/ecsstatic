@@ -61,6 +61,7 @@ importers:
     specifiers:
       '@types/estree': ^1.0.0
       '@types/node': ^18.11.18
+      acorn-walk: ^8.2.0
       esbuild: ^0.17.0
       esbuild-plugin-noexternal: ^0.1.3
       eval: ^0.1.8
@@ -71,6 +72,7 @@ importers:
       tsup: ^6.5.0
       vite: ^4.0.0
     dependencies:
+      acorn-walk: 8.2.0
       esbuild: 0.17.0
       esbuild-plugin-noexternal: 0.1.3
       eval: 0.1.8
@@ -1040,6 +1042,11 @@ packages:
 
   /@vscode/l10n/0.0.10:
     resolution: {integrity: sha512-E1OCmDcDWa0Ya7vtSjp/XfHFGqYJfh+YPC1RkATU71fTac+j1JjCcB3qwSzmlKAighx2WxhLlfhS0RwAN++PFQ==}
+    dev: false
+
+  /acorn-walk/8.2.0:
+    resolution: {integrity: sha512-k+iyHEuPgSw6SbuDpGQM+06HQUa04DZ3o+F6CSzXMvvI5KMvnaEqXe+YVe555R9nn6GPt404fos4wcgpw12SDA==}
+    engines: {node: '>=0.4.0'}
     dev: false
 
   /acorn/8.8.1:

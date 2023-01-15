@@ -6,7 +6,8 @@ import path from 'path';
 import postcss from 'postcss';
 import postcssNested from 'postcss-nested';
 import postcssScss from 'postcss-scss';
-import type { Identifier, Program, TaggedTemplateExpression, VariableDeclaration } from 'estree';
+import { ancestor as walk } from 'acorn-walk';
+import type { Node, Program, TaggedTemplateExpression, VariableDeclaration } from 'estree';
 import type { Plugin, ResolvedConfig } from 'vite';
 
 import hash from './hash.js';
@@ -134,15 +135,15 @@ export function ecsstatic(options: Options = {}) {
 			const ecsstaticImports = findEcsstaticImports(parsedAst);
 			if (ecsstaticImports.length === 0) return;
 
-			const cssTemplateDeclarations = findCssTaggedTemplateLiterals(parsedAst, ecsstaticImports);
-			if (cssTemplateDeclarations.length === 0) return;
+			const cssTemplateLiterals = findCssTaggedTemplateLiterals(parsedAst, ecsstaticImports);
+			if (cssTemplateLiterals.length === 0) return;
 
 			let inlinedVars = '';
 			const generatedClasses = new Map<string, string>();
 
-			for (const node of cssTemplateDeclarations) {
-				const originalName = (node.declarations[0].id as Identifier).name;
-				const { start, end, quasi, tag } = node.declarations[0].init as TaggedTemplateExpression;
+			for (const node of cssTemplateLiterals) {
+				const originalName = node._originalName || '🎈';
+				const { start, end, quasi, tag } = node;
 
 				const { isScss } = ecsstaticImports.find(
 					({ importName }) => tag.type === 'Identifier' && importName === tag.name
@@ -313,23 +314,39 @@ async function findAllVariablesUsingEsbuild(
 	return varDeclarations.map(({ start, end }) => processedCode.slice(start, end)).join('');
 }
 
-/** filters the ast to all variable declarations matching `isCssTaggedTemplateLiteral` */
+/** walks the ast to find all tagged template literals that look like (css`...`) */
 function findCssTaggedTemplateLiterals(
 	ast: Program,
 	ecsstaticImports: ReturnType<typeof findEcsstaticImports>
 ) {
-	return ast.body.flatMap((node) => {
-		const _node = node.type === 'ExportNamedDeclaration' ? node.declaration : node;
+	type TaggedTemplateWithName = TaggedTemplateExpression & { _originalName?: string };
 
-		if (
-			_node!.type === 'VariableDeclaration' &&
-			isCssTaggedTemplateLiteral(_node, ecsstaticImports)
-		) {
-			return [_node];
-		}
+	const tagNames = ecsstaticImports.map(({ importName }) => importName);
+	let nodes: Array<TaggedTemplateWithName> = [];
 
-		return [];
-	}) as VariableDeclaration[];
+	walk(ast as any, {
+		TaggedTemplateExpression(node, ancestors) {
+			const _node = node as TaggedTemplateWithName;
+
+			if (_node.tag.type === 'Identifier' && tagNames.includes(_node.tag.name)) {
+				// last node is the current node, so we look at the second last node to find a name
+				const prevNode = (ancestors as any[]).at(-2) as Node;
+				if (
+					prevNode &&
+					prevNode.type === 'VariableDeclarator' &&
+					prevNode.id.type === 'Identifier' &&
+					prevNode.init?.start === _node.start &&
+					prevNode.init?.end === _node.end
+				) {
+					_node._originalName = prevNode.id.name;
+				}
+
+				nodes.push(_node);
+			}
+		},
+	});
+
+	return nodes;
 }
 
 /**
