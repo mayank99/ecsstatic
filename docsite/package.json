@@ -17,6 +17,7 @@
 		"open-props-scss": "^0.4.1",
 		"preact": "^10.6.5",
 		"rough-notation": "^0.5.1",
-		"sass": "^1.57.1"
+		"sass": "^1.57.1",
+		"shiki": "^0.11.1"
 	}
 }
