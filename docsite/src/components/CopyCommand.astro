@@ -43,7 +43,7 @@ const { command, ...rest } = Astro.props;
 <style lang='scss'>
 	copy-command {
 		position: relative;
-		font-size: $font-size-3;
+		font-size: $font-size-fluid-1;
 		padding: $size-2 $size-4;
 		border-radius: $radius-2;
 		box-shadow: 0 0 1px $red-2, 0 0 var(--_shadow-strength, 4px) $red-7;
@@ -51,6 +51,7 @@ const { command, ...rest } = Astro.props;
 		display: flex;
 		gap: $size-3;
 		align-items: center;
+		white-space: nowrap;
 		color: var(--_color, $gray-4);
 		transition: all 0.3s $ease-4;
 		transition-property: box-shadow, color;
