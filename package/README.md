@@ -76,6 +76,22 @@ const button = scss`
 `;
 ```
 
-## Current limitations
+## Evaluating expressions (interpolation)
 
-- Resolving variables interpolated in the template strings does not work for all cases.
+Evaluating expressions interpolated in the template strings works out-of-the-box for simple cases but might not work perfectly in big files/projects.
+
+For evaluating expressions that rely on importing other files in your project, try the experimental `resolveImports` option.
+
+```js
+export default defineConfig({
+  plugins: [ecsstatic({ resolveImports: true })],
+});
+```
+
+For importing npm, pass its name to the `resolvePackages` option.
+
+```js
+export default defineConfig({
+  plugins: [ecsstatic({ resolvePackages: ['open-props'] })],
+});
+```
