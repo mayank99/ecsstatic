@@ -125,6 +125,11 @@ import Preeminent from '../components/Preeminent.astro';
 				color-scheme: dark;
 			}
 
+			html,
+			body {
+				block-size: unset;
+			}
+
 			body {
 				font-size: $font-size-fluid-0;
 			}
@@ -191,7 +196,7 @@ import Preeminent from '../components/Preeminent.astro';
 			hero-section {
 				min-block-size: 100vh;
 				min-block-size: 100svb;
-				padding: $size-fluid-4;
+				padding: $size-1;
 				container-type: inline-size;
 				display: grid;
 				place-items: center;
@@ -255,6 +260,7 @@ import Preeminent from '../components/Preeminent.astro';
 					border-radius: $radius-2;
 					background-color: $red-9;
 					transition: box-shadow 0.3s $ease-4;
+					white-space: nowrap;
 
 					&:hover,
 					&:focus-visible {
