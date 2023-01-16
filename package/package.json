@@ -1,7 +1,7 @@
 {
 	"name": "@acab/ecsstatic",
 	"description": "The predefinite CSS-in-JS library for Vite.",
-	"version": "0.0.10",
+	"version": "0.0.11",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
