@@ -19,7 +19,7 @@
 		"node": ">=16.0.0"
 	},
 	"dependencies": {},
-	"packageManager": "pnpm@7.11.0",
+	"packageManager": "pnpm@7.22.0",
 	"prettier": {
 		"jsxSingleQuote": true,
 		"singleQuote": true,
