@@ -1,0 +1,46 @@
+<h1>
+	<red-balloon aria-hidden>🎈</red-balloon>
+	<span>e<span class='css'>css</span>tatic</span>
+</h1>
+
+<style lang='scss'>
+	h1 {
+		text-align: center;
+		font-weight: 400;
+		font-size: $size-fluid-6;
+		font-style: italic;
+		transform: translateX(-$size-1);
+		font-family: 'Segoe UI', 'Segoe UI fallback', system-ui, sans-serif;
+	}
+	h1 > span {
+		display: block;
+		letter-spacing: $font-letterspacing-0;
+	}
+	.css {
+		color: $red-7;
+		--selection-color: #{$red-10};
+	}
+	red-balloon {
+		display: block;
+		line-height: 1;
+		font-size: $size-fluid-8;
+		font-style: normal;
+		font-family: 'Noto Color Emoji';
+		transform: translateX(-$size-2);
+		user-select: none;
+	}
+	@font-face {
+		font-family: 'Noto Color Emoji';
+		font-style: normal;
+		font-weight: 400;
+		font-display: block;
+		src: url(/noto-balloon.woff2) format('woff2');
+	}
+	@font-face {
+		font-family: 'Segoe UI fallback';
+		font-weight: 400;
+		font-display: swap;
+		font-style: italic;
+		src: url(/segoeui-fallback.woff2) format('woff2');
+	}
+</style>

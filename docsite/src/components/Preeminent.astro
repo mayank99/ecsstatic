@@ -1,0 +1,62 @@
+<span class='visually-hidden'>preeminent</span>
+<pre-eminent aria-hidden='true'>pre-definite<question-mark>(?)</question-mark></pre-eminent>
+
+<style lang='scss' is:global>
+	pre-eminent {
+		display: inline-flex;
+		white-space: nowrap;
+		font-style: italic;
+		inline-size: 12ch;
+		gap: 0.25ch;
+	}
+	question-mark {
+		color: $gray-6;
+	}
+</style>
+
+<script>
+	import { annotate } from 'rough-notation';
+
+	const questionMark = document.createElement('question-mark');
+	questionMark.innerText = '(??)';
+
+	let done = false;
+	const sleep = (ms = 0) => new Promise((resolve) => setTimeout(resolve, ms));
+
+	customElements.define(
+		'pre-eminent',
+		class extends HTMLElement {
+			connectedCallback() {
+				new IntersectionObserver(
+					([entry]) => {
+						(async () => {
+							if (!done && entry.isIntersecting) {
+								done = true;
+								await sleep(1200);
+
+								const annotation = annotate(this, {
+									type: 'strike-through',
+									animationDuration: 800,
+								});
+
+								annotation.show();
+								this.nextElementSibling?.setAttribute('aria-hidden', 'true');
+
+								await sleep(1200);
+								annotation.hide();
+
+								this.textContent = 'preeminent';
+								this.appendChild(questionMark);
+								this.animate([{ clipPath: 'inset(0 100% 0% 0)' }, { clipPath: 'inset(0 0 0 0)' }], {
+									duration: 600,
+									iterations: 1,
+								});
+							}
+						})();
+					},
+					{ threshold: 1 }
+				).observe(this);
+			}
+		}
+	);
+</script>

@@ -1,0 +1,122 @@
+---
+type Props = { command: string } & astroHTML.JSX.HTMLAttributes;
+const { command, ...rest } = Astro.props;
+---
+
+<copy-command command={command}>
+	<code>{command}</code>
+
+	<button>
+		<span class='visually-hidden'>Copy to clipboard</span>
+	</button>
+
+	<output class='visually-hidden'></output>
+</copy-command>
+
+<script>
+	customElements.define(
+		'copy-command',
+		class extends HTMLElement {
+			constructor() {
+				super();
+				const command = this.getAttribute('command') ?? '';
+				const button = this.querySelector('button')!;
+				const output = this.querySelector('output')!;
+				button.addEventListener('click', async () => {
+					try {
+						await navigator.clipboard.writeText(command);
+						this.dataset.copied = 'true';
+						output.textContent = 'Copied!';
+						setTimeout(() => {
+							this.dataset.copied = 'false';
+							output.textContent = '';
+						}, 5000);
+					} catch {
+						console.error('Failed to copy to clipboard');
+					}
+				});
+			}
+		}
+	);
+</script>
+
+<style lang='scss'>
+	copy-command {
+		position: relative;
+		font-size: $font-size-3;
+		padding: $size-2 $size-4;
+		border-radius: $radius-2;
+		box-shadow: 0 0 1px $red-2, 0 0 var(--_shadow-strength, 4px) $red-7;
+		outline: 1px solid transparent;
+		display: flex;
+		gap: $size-3;
+		align-items: center;
+		color: var(--_color, $gray-4);
+		transition: all 0.3s $ease-4;
+		transition-property: box-shadow, color;
+
+		&:hover,
+		&:where(:has(button:focus-visible)) {
+			--_shadow-strength: 12px;
+			--_color: $gray-0;
+		}
+
+		@supports not selector(:has(+ *)) {
+			&:focus-within {
+				--_shadow-strength: 12px;
+				--_color: $gray-0;
+			}
+		}
+	}
+	code {
+		font-family: $font-mono;
+		letter-spacing: $font-letterspacing-0;
+	}
+	button {
+		$copy-icon: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxZW0iIGhlaWdodD0iMWVtIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTUgMjJxLS44MjUgMC0xLjQxMy0uNTg3UTMgMjAuODI1IDMgMjBWNmgydjE0aDExdjJabTQtNHEtLjgyNSAwLTEuNDEyLS41ODdRNyAxNi44MjUgNyAxNlY0cTAtLjgyNS41ODgtMS40MTNROC4xNzUgMiA5IDJoOXEuODI1IDAgMS40MTMuNTg3UTIwIDMuMTc1IDIwIDR2MTJxMCAuODI1LS41ODcgMS40MTNRMTguODI1IDE4IDE4IDE4Wm0wLTJoOVY0SDl2MTJabTAgMFY0djEyWiIvPjwvc3ZnPg==');
+		$check-icon: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxZW0iIGhlaWdodD0iMWVtIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTkgMTYuMTdMNC44MyAxMmwtMS40MiAxLjQxTDkgMTlMMjEgN2wtMS40MS0xLjQxTDkgMTYuMTd6Ii8+PC9zdmc+');
+		--_icon: #{$copy-icon};
+
+		:global([data-copied='true']) & {
+			--_icon: #{$check-icon};
+			animation: appear 0.5s $ease-out-4;
+		}
+
+		border: none;
+		background: transparent;
+		display: flex;
+		align-items: center;
+		@media (forced-colors: none) {
+			outline-color: transparent;
+		}
+
+		&::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+		}
+
+		&::after {
+			content: '';
+			width: 1em;
+			height: 1em;
+			background-color: currentColor;
+			$mask: var(--_icon) no-repeat center / contain;
+			-webkit-mask: $mask;
+			mask: $mask;
+
+			@media (forced-colors: active) {
+				background-color: CanvasText;
+			}
+		}
+
+		@keyframes appear {
+			from {
+				clip-path: inset(0 100% 100% 0);
+			}
+			to {
+				clip-path: inset(0 0 0 0);
+			}
+		}
+	}
+</style>

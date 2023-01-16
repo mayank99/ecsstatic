@@ -1,0 +1,60 @@
+---
+---
+
+<logos-wrapper>
+	<div class='vite'><span class='visually-hidden'>Vite logo</span></div>
+	<div class='astro'><span class='visually-hidden'>Astro logo</span></div>
+	<div class='solid'><span class='visually-hidden'>Solid-JS logo</span></div>
+	<div class='qwik'><span class='visually-hidden'>Qwik logo</span></div>
+</logos-wrapper>
+
+<style lang='scss'>
+	logos-wrapper {
+		display: grid;
+		transform: translateY(-2rem);
+
+		> :global(*) {
+			grid-area: 1 / 1;
+		}
+	}
+
+	div {
+		background: var(--_icon) no-repeat center / contain;
+		width: var(--_size);
+		height: var(--_size);
+		will-change: filter;
+		transition: filter 0.3s $ease-out-3;
+
+		&:hover {
+			filter: drop-shadow(0 0 calc(var(--_size) / 3) var(--_shadow-color));
+		}
+	}
+	.vite {
+		--_icon: url(/vite.svg);
+		--_size: #{$size-fluid-7};
+		--_shadow-color: Hsl(#{$indigo-5-hsl} / 0.7);
+		filter: drop-shadow(0 0 calc(var(--_size) / 1.75) var(--_shadow-color));
+		margin: $size-9;
+	}
+	.astro {
+		--_icon: url(/astro.svg);
+		--_size: #{$size-10};
+		--_shadow-color: #{$orange-6};
+		place-self: end center;
+		transform: translateY(2.5rem);
+	}
+	.solid {
+		--_icon: url(/solid.svg);
+		--_size: calc(#{$size-10} - 1rem);
+		--_shadow-color: Hsl(#{$blue-7-hsl} / 0.7);
+		place-self: end start;
+		transform: translate(1rem, -1rem);
+	}
+	.qwik {
+		--_icon: url(/qwik.svg);
+		--_size: #{$size-10};
+		--_shadow-color: Hsl(#{$violet-5-hsl} / 0.9);
+		place-self: end;
+		transform: translate(-1rem, -0.5rem);
+	}
+</style>

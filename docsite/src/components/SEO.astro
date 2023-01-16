@@ -1,0 +1,25 @@
+---
+const title = 'ecsstatic';
+const description = 'A fully static CSS-in-JS solution that does just enough.';
+const deployUrl = import.meta.env.DEPLOY_PRIME_URL || Astro.request.url;
+---
+
+<title>{title}</title>
+<meta name='description' content={description} />
+<link rel='icon' type='image/svg+xml' href='/favicon.svg' />
+
+<meta property='og:title' content={title} />
+<meta property='og:description' content={description} />
+<meta property='og:type' content='article' />
+<meta property='og:url' content={deployUrl} />
+<meta property='og:locale' content={'en-us'} />
+<meta property='og:image' content={new URL('og-image.jpg', deployUrl)} />
+<meta property='og:image:alt' content='ecsstatic balloon logo' />
+<meta property='og:site_name' content={title} />
+
+<meta name='twitter:card' content='summary_large_image' />
+<meta name='twitter:title' content={title} />
+<meta name='twitter:description' content={description} />
+<meta name='twitter:image' content={new URL('og-image.jpg', deployUrl)} />
+
+<meta name='generator' content={Astro.generator} />

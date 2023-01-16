@@ -1,5 +1,5 @@
 {
-	"name": "ecsstatic-demo",
+	"name": "docsite",
 	"type": "module",
 	"version": "0.0.1",
 	"private": true,
@@ -11,12 +11,12 @@
 		"astro": "astro"
 	},
 	"dependencies": {
-		"@acab/ecsstatic": "*",
-		"@astrojs/react": "^1.2.2",
-		"@types/react": "^18.0.21",
-		"@types/react-dom": "^18.0.6",
+		"@acab/reset.css": "^0.5.3",
+		"@astrojs/preact": "^1.2.0",
 		"astro": "1",
-		"react": "^18.0.0",
-		"react-dom": "^18.0.0"
+		"open-props-scss": "^0.4.1",
+		"preact": "^10.6.5",
+		"rough-notation": "^0.5.1",
+		"sass": "^1.57.1"
 	}
 }

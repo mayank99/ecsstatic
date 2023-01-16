@@ -4,7 +4,8 @@
 	"private": true,
 	"workspaces": [
 		"package",
-		"demos/*"
+		"demos/*",
+		"docsite"
 	],
 	"scripts": {
 		"build": "turbo run build",

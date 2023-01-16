@@ -1,0 +1,279 @@
+---
+import CopyCommand from '../components/CopyCommand.astro';
+import GetStarted from '../components/GetStarted.astro';
+import Logo from '../components/Logo.astro';
+import Code from '../components/Code.astro';
+import ViteLogos from '../components/ViteLogos.astro';
+import SEO from '../components/SEO.astro';
+import Preeminent from '../components/Preeminent.astro';
+---
+
+<html lang='en'>
+	<head>
+		<meta charset='utf-8' />
+		<meta name='color-scheme' content='dark' />
+		<meta name='viewport' content='width=device-width' />
+		<SEO />
+	</head>
+	<body>
+		<header>
+			<nav aria-label='External'>
+				<ul>
+					<li>
+						<a href='https://npmjs.com/@acab/ecsstatic'>npm</a>
+					</li>
+					<li>
+						<a href='https://www.github.com/mayank99/ecsstatic'>GitHub</a>
+					</li>
+				</ul>
+			</nav>
+		</header>
+		<main>
+			<hero-section>
+				<Logo />
+				<p class='tagline'>A fully static CSS-in-JS solution that does just enough.</p>
+				<CopyCommand command='npm i -D @acab/ecsstatic' />
+				<GetStarted to='features' />
+			</hero-section>
+			<article id='features'>
+				<div>
+					<h2>Minimal API surface</h2>
+					<p>You write some styles, you get back a scoped class name. That's all.</p>
+					<p>
+						It's like CSS modules, except you get to colocate your styles next to your markup and
+						get the IDE experience of JavaScript variable references.
+					</p>
+				</div>
+				<Code code={'button-jsx'} />
+			</article>
+
+			<article>
+				<div>
+					<h2>Produces a static stylesheet</h2>
+					<p>Compiles away like it never existed, leaving behind just the class name.</p>
+					<p>The styles end up in a CSS file, with no JavaScript added to your client bundle.</p>
+				</div>
+				<div>
+					<Code code={'button-output'} />
+					<Code code={'button-css'} />
+				</div>
+			</article>
+
+			<article>
+				<div>
+					<h2>Write real CSS</h2>
+					<p>
+						CSS is awesome. That's why 100% of CSS features, present and future, will work here.
+					</p>
+					<p>
+						And you're able to copy-paste huge chunks of styles to/from CSS files and between
+						projects.
+					</p>
+				</div>
+				<div>
+					<Code code={'real-css'} />
+				</div>
+			</article>
+
+			<article>
+				<div>
+					<h2>Or write SCSS-in-JS</h2>
+					<p>
+						Sass is the <Preeminent /> preprocessor that continues to work well more than a decade later.
+						That's why there is built-in support for Sass.
+					</p>
+					<p>
+						You get to use mixins, functions, conditionals, and even import Sass libraries from npm.
+						And of course, the real selling point: double-slash comments!
+					</p>
+				</div>
+				<div>
+					<Code code={'button-sass'} />
+				</div>
+			</article>
+
+			<article>
+				<div>
+					<h2>Designed for Vite</h2>
+					<p>
+						Framework-agnostic and works seamlessly with all the new metaframeworks powered by Vite.
+					</p>
+					<p>
+						Relying on Vite's CSS pipeline also makes it straightforward to do further
+						transformations using PostCSS plugins or LightningCSS.
+					</p>
+				</div>
+				<div>
+					<ViteLogos />
+				</div>
+			</article>
+
+			<div class='cta'>
+				<h2>So, what are you waiting for?</h2>
+				<a href='https://www.github.com/mayank99/ecsstatic'>Get started</a>
+			</div>
+		</main>
+
+		<footer>Made with 🎈 by Mayank</footer>
+		<style lang='scss' is:global>
+			@import '@acab/reset.css';
+
+			html {
+				background-color: $gray-10;
+				scroll-behavior: smooth;
+				tab-size: 2;
+				color-scheme: dark;
+			}
+
+			body {
+				font-size: $font-size-fluid-0;
+			}
+
+			p {
+				max-inline-size: $size-content-3;
+				color: $gray-4;
+			}
+
+			h2 {
+				font-weight: 400;
+				font-size: $font-size-fluid-2;
+			}
+
+			::selection {
+				background-color: var(--selection-bg, #{$red-3});
+				color: var(--selection-color, #{$gray-10});
+			}
+		</style>
+
+		<style lang='scss'>
+			header {
+				z-index: 1;
+				position: absolute;
+				padding: $size-fluid-2 $size-fluid-4;
+				display: grid;
+				justify-items: end;
+				width: 100%;
+
+				ul {
+					display: flex;
+					gap: $size-fluid-3;
+				}
+
+				a {
+					display: inline-grid;
+					place-items: center;
+					min-block-size: 3rem;
+					min-inline-size: 3rem;
+					font-size: $font-size-3;
+					color: $gray-4;
+					text-decoration: none;
+					transition: color 0.4s $ease-out-2;
+
+					&:hover {
+						color: $gray-1;
+						text-decoration: underline;
+						text-underline-offset: 0.5ex;
+					}
+				}
+			}
+
+			.tagline {
+				text-align: center;
+				max-inline-size: $size-content-2;
+				color: $gray-1;
+				font-size: $font-size-fluid-1;
+
+				@container (#{$md-n-below}) {
+					max-inline-size: 75%;
+				}
+			}
+
+			hero-section {
+				min-block-size: 100vh;
+				min-block-size: 100svb;
+				padding: $size-fluid-4;
+				container-type: inline-size;
+				display: grid;
+				place-items: center;
+				gap: $size-4;
+				padding-block-end: 0;
+				grid-template-rows: [before] 1fr auto auto auto [after] 1fr auto;
+
+				&::before {
+					content: '';
+					grid-row: before;
+				}
+
+				&::after {
+					content: '';
+					grid-row: after;
+				}
+			}
+
+			main {
+				padding-block-end: $size-fluid-6;
+				gap: $size-fluid-6;
+				display: grid;
+				align-items: center;
+			}
+
+			article {
+				margin-inline: auto;
+				max-inline-size: min(90%, 70em);
+				scroll-margin-block-start: $size-fluid-5;
+				font-size: $font-size-fluid-1;
+				gap: $size-fluid-4;
+				display: grid;
+				place-items: center;
+				place-content: center;
+				grid-template-columns: repeat(auto-fit, minmax(min(100%, 40ch), 1fr));
+
+				> :global(*) {
+					max-inline-size: $size-content-2;
+				}
+
+				:where(h2, p) + :global(*) {
+					margin-block-start: 1em;
+				}
+			}
+
+			.cta {
+				display: grid;
+				gap: $size-3;
+				place-items: center;
+				margin-inline: auto;
+
+				a {
+					display: inline-grid;
+					place-items: center;
+					text-decoration: none;
+					color: inherit;
+					padding-inline: $size-fluid-3;
+					padding-block: $size-fluid-1;
+					font-size: $font-size-fluid-1;
+					min-height: 3rem;
+					border-radius: $radius-2;
+					background-color: $red-9;
+					transition: box-shadow 0.3s $ease-4;
+
+					&:hover,
+					&:focus-visible {
+						box-shadow: 0 0 2px $red-5, 0 0 16px $pink-9;
+					}
+
+					@media (forced-colors: active) {
+						border: 1px solid;
+					}
+				}
+			}
+
+			footer {
+				display: grid;
+				place-items: center;
+				padding-block: $size-3;
+				color: $gray-6;
+				font-size: $font-size-0;
+			}
+		</style>
+	</body>
+</html>

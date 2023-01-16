@@ -1,0 +1,36 @@
+<a href={`#${Astro.props.to}`}>
+	<span class='visually-hidden'>Scroll down</span>
+</a>
+
+<style lang='scss'>
+	a {
+		margin: $size-3;
+		color: $gray-6;
+		text-transform: uppercase;
+		text-decoration: none;
+		display: grid;
+		place-items: center;
+		gap: $size-2;
+
+		&::before {
+			--down: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxZW0iIGhlaWdodD0iMWVtIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0ibTIwIDEybC0xLjQxLTEuNDFMMTMgMTYuMTdWNGgtMnYxMi4xN2wtNS41OC01LjU5TDQgMTJsOCA4bDgtOHoiLz48L3N2Zz4=');
+			content: '';
+			$mask: var(--down) no-repeat center / contain;
+			-webkit-mask: $mask;
+			mask: $mask;
+			background-color: currentColor;
+			height: $size-6;
+			width: $size-6;
+
+			@media ($motionOK) {
+				animation: pulse 2s $ease-1 forwards infinite;
+			}
+		}
+
+		@keyframes pulse {
+			50% {
+				transform: scale(0.8, 0.8);
+			}
+		}
+	}
+</style>

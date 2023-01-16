@@ -1,0 +1,101 @@
+---
+import Code from 'astro/components/Code.astro';
+
+type Props = {
+	code: 'button-jsx' | 'button-css' | (string & {});
+};
+let { code, lang, ...rest } = Astro.props;
+
+if (code === 'button-jsx') {
+	lang = 'jsx';
+	code = `import { css } from '@acab/ecsstatic'
+
+export const Button = () => {
+	return <button class={button}>hello</button>
+}
+const button = css\`
+	background-color: tomato;
+	border-radius: 4px;
+	padding: 0.5rem 1rem;
+	transition: background-color 0.2s;
+
+	&:hover {
+		background-color: crimson;
+	}
+\``;
+} else if (code === 'button-css') {
+	lang = 'css';
+	code = `.button-cix741 {
+	background-color: tomato;
+	border-radius: 4px;
+	padding: 0.5rem 1rem;
+	transition: background-color 0.2s;
+}
+.button-cix741:hover {
+	background-color: crimson;
+}`;
+} else if (code === 'button-output') {
+	lang = 'jsx';
+	code = `export const Button = () => {
+	return <button class={button}>hello</button>
+}
+const button = 'button-cix741'`;
+} else if (code === 'real-css') {
+	lang = 'jsx';
+	code = `const button = css\`
+	@layer base {
+		background-color: var(--accent-bg);
+		border-radius: var(--radius-2);
+		padding: var(--space-xxs) var(--space-xs);
+
+		@container style(--variant: ghost) {
+			background-color: transparent;
+		}
+	}
+
+	@layer overrides {
+		@media (forced-colors: active) {
+			border: 1px solid;
+		}
+	}
+\``;
+} else if (code === 'button-sass') {
+	lang = 'jsx';
+	code = `import { scss } from '@acab/ecsstatic'
+
+const button = scss\`
+	@use 'open-props-scss' as *;
+
+	background: $purple-9;
+	border-radius: $radius-1;
+	padding: $size-1 $size-2;
+
+	&:hover {
+		background: $purple-6;
+	}
+
+	// adds outline in windows high-contrast mode
+	@include forced-colors-outline;
+\``;
+}
+---
+
+<div {...rest}>
+	<Code code={code} lang={lang} theme='github-dark-dimmed' />
+</div>
+
+<style lang='scss'>
+	div > :global(*) {
+		inline-size: 55ch;
+		border-radius: $radius-2;
+		padding: $size-fluid-2;
+		box-shadow: $shadow-2;
+		font-size: $font-size-fluid-0;
+	}
+	div :global(:is(pre, code)) {
+		font-family: $font-mono;
+	}
+	div + div {
+		margin-block-start: $size-fluid-1;
+	}
+</style>
