@@ -88,7 +88,7 @@ export default defineConfig({
 });
 ```
 
-For importing npm, pass its name to the `resolvePackages` option.
+For importing an npm package, pass its name to the `resolvePackages` option.
 
 ```js
 export default defineConfig({
