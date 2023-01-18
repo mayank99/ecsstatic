@@ -30,7 +30,7 @@ export default defineConfig({
 });
 ```
 
-Start using it in any JS/TS file:
+Start using `css` in any JS/TS file:
 
 ```tsx
 import { css } from '@acab/ecsstatic';
@@ -54,7 +54,7 @@ const button = css`
 `;
 ```
 
-Or with Sass:
+Or use `scss`:
 
 ```tsx
 import { scss } from '@acab/ecsstatic';
@@ -90,7 +90,7 @@ export default defineConfig({
 
 ## Syntax highlighting
 
-For syntax highlighting and intellisense, use the [vscode-styled-components](https://marketplace.visualstudio.com/items?itemName=styled-components.vscode-styled-components) extension. This should work fine for `css` literal, but for `scss` you might need to rename the import.
+For syntax highlighting and intellisense, use the [vscode-styled-components](https://marketplace.visualstudio.com/items?itemName=styled-components.vscode-styled-components) extension. This should work fine for `css` literals, but for `scss` you might need to rename the import.
 
 ```js
 import { scss as css } from '@acab/ecsstatic';
