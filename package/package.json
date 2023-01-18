@@ -19,14 +19,14 @@
 	],
 	"exports": {
 		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"require": "./dist/index.cjs"
+			"types": "./index.d.ts",
+			"import": "./index.js",
+			"require": "./index.cjs"
 		},
 		"./vite": {
-			"types": "./dist/vite.d.ts",
-			"import": "./dist/vite.js",
-			"require": "./dist/vite.cjs"
+			"types": "./vite.d.ts",
+			"import": "./vite.js",
+			"require": "./vite.cjs"
 		}
 	},
 	"dependencies": {
