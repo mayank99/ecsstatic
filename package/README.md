@@ -78,17 +78,9 @@ const button = scss`
 
 ## Evaluating expressions (interpolation)
 
-Evaluating expressions interpolated in the template strings works out-of-the-box for simple cases but might not work perfectly in big files/projects.
+Evaluating expressions interpolated in the template strings works out-of-the-box for many cases but might not work perfectly in big files/projects. If you are seeing unexpected results, try moving your component out to a smaller file.
 
-For evaluating expressions that rely on importing other files in your project, try the experimental `resolveImports` option.
-
-```js
-export default defineConfig({
-  plugins: [ecsstatic({ resolveImports: true })],
-});
-```
-
-For importing an npm package, pass its name to the `resolvePackages` option.
+By default, npm packages are not resolved (they are "external"-ized). For importing a package, pass its name to the `resolvePackages` option.
 
 ```js
 export default defineConfig({

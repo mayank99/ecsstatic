@@ -1,5 +1,5 @@
 // https://github.com/garycourt/murmurhash-js
-export default function murmurhash2_32_gc(str = '') {
+export default function hash(str = '') {
 	let l = str.length,
 		h = l ^ l,
 		i = 0,
