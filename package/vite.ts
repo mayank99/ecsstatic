@@ -6,15 +6,15 @@ import path from 'path';
 import postcss from 'postcss';
 import postcssNested from 'postcss-nested';
 import postcssScss from 'postcss-scss';
-import { ancestor as walk } from 'acorn-walk';
-import type { Node, Program, TaggedTemplateExpression } from 'estree';
+import { simple as walk } from 'acorn-walk';
+import type { Program, TaggedTemplateExpression } from 'estree';
 import type { Plugin, ResolvedConfig } from 'vite';
 
 import hash from './hash.js';
 
 type Options = {
 	/**
-	 * Should ecsstatic attempt to evaluate expressions (including other class names) used in the template literal?
+	 * Should expressions (including other class names) inside template literals be evaluated?
 	 *
 	 * Note: This will only work for top-level expressions within the project. It does not look inside components and
 	 * also ignores npm packages. If you need to use npm packages, see the `resolvePackages` option.
@@ -23,7 +23,7 @@ type Options = {
 	 */
 	evaluateExpressions?: boolean;
 	/**
-	 * By default, packages are also not resolved (everything is "external"-ized) because it is faster this way.
+	 * By default, packages are not resolved (everything is "external"-ized) because it is faster this way.
 	 * To use an npm package, you can pass its name in an array here.
 	 *
 	 * @experimental This feature may not work perfectly.
@@ -100,16 +100,11 @@ export function ecsstatic(options: Options = {}) {
 
 			const parsedAst = this.parse(code) as Program;
 
-			const {
-				cssImportName,
-				scssImportName,
-				statements: ecsstaticImportStatements,
-			} = findEcsstaticImports(parsedAst);
+			const { scssImportName, statements: ecsstaticImportStatements } =
+				findEcsstaticImports(parsedAst);
 			if (ecsstaticImportStatements.length === 0) return;
 
-			const ecsstaticImportNames = [cssImportName, scssImportName].filter(Boolean) as string[];
-
-			const cssTemplateLiterals = findCssTaggedTemplateLiterals(parsedAst, ecsstaticImportNames);
+			const cssTemplateLiterals = findCssTaggedTemplateLiterals(parsedAst);
 			if (cssTemplateLiterals.length === 0) return;
 
 			const magicCode = new MagicString(code);
@@ -121,7 +116,7 @@ export function ecsstatic(options: Options = {}) {
 
 				// lazy populate inlinedVars until we need it, to delay problems that come with this mess
 				if (quasi.expressions.length && evaluateExpressions && !inlinedVars) {
-					inlinedVars = await inlineImportsUsingEsbuild(id, { noExternal: resolvePackages });
+					inlinedVars = await inlineVarsUsingEsbuild(id, { noExternal: resolvePackages });
 				}
 
 				const rawTemplate = code.slice(quasi.start, quasi.end).trim();
@@ -233,7 +228,7 @@ function evalWithEsbuild(expression: string, allVarDeclarations = '') {
 }
 
 /** uses esbuild.build to resolve all imports and return the "bundled" code */
-async function inlineImportsUsingEsbuild(fileId: string, options: { noExternal?: string[] }) {
+async function inlineVarsUsingEsbuild(fileId: string, options: { noExternal?: string[] }) {
 	const { noExternal = [] } = options;
 
 	const processedCode = (
@@ -257,45 +252,14 @@ async function inlineImportsUsingEsbuild(fileId: string, options: { noExternal?:
 }
 
 /** walks the ast to find all tagged template literals that look like (css`...`) */
-function findCssTaggedTemplateLiterals(ast: Program, tagNames: string[]) {
-	type TaggedTemplateWithName = TaggedTemplateExpression & { _originalName?: string };
+function findCssTaggedTemplateLiterals(ast: Program) {
+	type TaggedTemplateWithName = TaggedTemplateExpression;
 
 	let nodes: Array<TaggedTemplateWithName> = [];
 
 	walk(ast as any, {
-		TaggedTemplateExpression(node, ancestors) {
-			const _node = node as TaggedTemplateWithName;
-
-			if (_node.tag.type === 'Identifier' && tagNames.includes(_node.tag.name)) {
-				// last node is the current node, so we look at the second last node to find a name
-				const prevNode = (ancestors as any[]).at(-2) as Node;
-
-				switch (prevNode?.type) {
-					case 'VariableDeclarator': {
-						if (
-							prevNode.id.type === 'Identifier' &&
-							prevNode.init?.start === _node.start &&
-							prevNode.init?.end === _node.end
-						) {
-							_node._originalName = prevNode.id.name;
-						}
-						break;
-					}
-					case 'Property': {
-						if (
-							prevNode.type === 'Property' &&
-							prevNode.value.start === _node.start &&
-							prevNode.value.end === _node.end &&
-							prevNode.key.type === 'Identifier'
-						) {
-							_node._originalName = prevNode.key.name;
-						}
-						break;
-					}
-				}
-
-				nodes.push(_node);
-			}
+		TaggedTemplateExpression(node) {
+			nodes.push(node as TaggedTemplateExpression);
 		},
 	});
 
@@ -309,6 +273,10 @@ function findCssTaggedTemplateLiterals(ast: Program, tagNames: string[]) {
 function loadDummyEcsstatic() {
 	const hashStr = hash.toString();
 	const getHashFromTemplateStr = getHashFromTemplate.toString();
+	const contents = `${hashStr}\n${getHashFromTemplateStr}\n
+	  export const css = getHashFromTemplate;
+	  export const scss = getHashFromTemplate;
+	`;
 
 	return <esbuild.Plugin>{
 		name: 'load-dummy-ecsstatic',
@@ -320,10 +288,6 @@ function loadDummyEcsstatic() {
 				};
 			});
 			build.onLoad({ filter: /(.*)/, namespace: 'ecsstatic' }, () => {
-				const contents = `${hashStr}\n${getHashFromTemplateStr}\n
-				export const css = getHashFromTemplate;
-				export const scss = getHashFromTemplate;
-			`;
 				return {
 					contents,
 					loader: 'js',
@@ -334,10 +298,10 @@ function loadDummyEcsstatic() {
 }
 
 /**
- * this is like a "runtime" version of the dummy css/scss functions.
+ * this is like an actual "runtime" version of the css/scss functions.
  *
- * we will use it to generate hashed classes for use inside expressions. *
- * these classes be wrapped with `:where()` to keep specficity flat.
+ * we will use it to generate hashed classes for use inside expressions.
+ * these classes will be wrapped with `:where()` to keep specficity flat.
  */
 function getHashFromTemplate(templates: TemplateStringsArray, ...args: Array<string | number>) {
 	let str = '';
