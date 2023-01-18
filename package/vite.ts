@@ -100,11 +100,16 @@ export function ecsstatic(options: Options = {}) {
 
 			const parsedAst = this.parse(code) as Program;
 
-			const { scssImportName, statements: ecsstaticImportStatements } =
-				findEcsstaticImports(parsedAst);
+			const {
+				cssImportName,
+				scssImportName,
+				statements: ecsstaticImportStatements,
+			} = findEcsstaticImports(parsedAst);
 			if (ecsstaticImportStatements.length === 0) return;
 
-			const cssTemplateLiterals = findCssTaggedTemplateLiterals(parsedAst);
+			const importNames = [cssImportName, scssImportName].filter(Boolean) as string[];
+
+			const cssTemplateLiterals = findCssTaggedTemplateLiterals(parsedAst, importNames);
 			if (cssTemplateLiterals.length === 0) return;
 
 			const magicCode = new MagicString(code);
@@ -252,14 +257,14 @@ async function inlineVarsUsingEsbuild(fileId: string, options: { noExternal?: st
 }
 
 /** walks the ast to find all tagged template literals that look like (css`...`) */
-function findCssTaggedTemplateLiterals(ast: Program) {
-	type TaggedTemplateWithName = TaggedTemplateExpression;
-
-	let nodes: Array<TaggedTemplateWithName> = [];
+function findCssTaggedTemplateLiterals(ast: Program, tagNames: string[]) {
+	let nodes: Array<TaggedTemplateExpression> = [];
 
 	walk(ast as any, {
 		TaggedTemplateExpression(node) {
-			nodes.push(node as TaggedTemplateExpression);
+			const _node = node as TaggedTemplateExpression;
+			if (!(_node.tag.type === 'Identifier' && tagNames.includes(_node.tag.name))) return;
+			nodes.push(_node);
 		},
 	});
 
