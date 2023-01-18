@@ -87,3 +87,19 @@ export default defineConfig({
   plugins: [ecsstatic({ resolvePackages: ['open-props'] })],
 });
 ```
+
+## Syntax highlighting
+
+For syntax highlighting and intellisense, use the [vscode-styled-components](https://marketplace.visualstudio.com/items?itemName=styled-components.vscode-styled-components) extension. This should work fine for `css` literal, but for `scss` you might need to rename the import.
+
+```js
+import { scss as css } from '@acab/ecsstatic';
+```
+
+## Prior art
+
+Huge shoutout to the previous libraries that came before this; ecsstatic would not have been possible without them paving the way.
+
+- styled-components / emotion
+- css modules
+- linaria
