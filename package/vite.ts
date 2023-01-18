@@ -335,7 +335,9 @@ function loadDummyEcsstatic() {
 
 /**
  * this is like a "runtime" version of the dummy css/scss functions.
- * we will use it to evaluate expressions and generate hashes.
+ *
+ * we will use it to generate hashed classes for use inside expressions. *
+ * these classes be wrapped with `:where()` to keep specficity flat.
  */
 function getHashFromTemplate(templates: TemplateStringsArray, ...args: Array<string | number>) {
 	let str = '';
@@ -345,7 +347,7 @@ function getHashFromTemplate(templates: TemplateStringsArray, ...args: Array<str
 			str += args[index];
 		}
 	});
-	return `🎈-${hash(str.trim())}`;
+	return `:where(.🎈-${hash(str.trim())})`;
 }
 
 function normalizePath(original: string) {
