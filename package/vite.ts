@@ -94,9 +94,9 @@ export function ecsstatic(options: Options = {}) {
 		},
 
 		async transform(code, id) {
-			[id] = id.split('?');
+			[id] = id.split('?'); // remove ?extra-shit from the end
 			if (/node_modules/.test(id)) return;
-			if (!/(c|m)*(j|t)s(x)*$/.test(id)) return;
+			if (!/\.(c|m)?(j|t)s(x)?$/.test(id)) return;
 
 			const parsedAst = this.parse(code) as Program;
 
