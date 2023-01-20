@@ -54,6 +54,7 @@ export function ecsstatic(options: Options = {}) {
 
 	return <Plugin>{
 		name: 'ecsstatic',
+		enforce: 'post',
 
 		configResolved(_config: ResolvedConfig) {
 			viteConfigObj = _config;
@@ -96,7 +97,7 @@ export function ecsstatic(options: Options = {}) {
 		async transform(code, id) {
 			[id] = id.split('?'); // remove ?extra-shit from the end
 			if (/node_modules/.test(id)) return;
-			if (!/\.(c|m)?(j|t)s(x)?$/.test(id)) return;
+			if (!/\.[cm]?[jt]sx?$/.test(id)) return;
 
 			const parsedAst = this.parse(code) as Program;
 
@@ -249,7 +250,11 @@ async function inlineVarsUsingEsbuild(fileId: string, options: { noExternal?: st
 				'.svg': 'empty',
 			},
 			keepNames: true,
-			plugins: [loadDummyEcsstatic(), externalizeAllPackagesExcept(noExternal)],
+			plugins: [
+				loadDummyEcsstatic(),
+				externalizeAllPackagesExcept(noExternal),
+				ignoreUnknownExtensions(),
+			],
 		})
 	).outputFiles[0].text;
 
@@ -298,6 +303,21 @@ function loadDummyEcsstatic() {
 					loader: 'js',
 				};
 			});
+		},
+	};
+}
+
+/** esbuild plugin that loads an empty string for any non JS/TS file */
+function ignoreUnknownExtensions() {
+	return <esbuild.Plugin>{
+		name: 'ignore-unknown-exports',
+		setup(build) {
+			build.onResolve({ filter: /.*/ }, (args) => {
+				if (!/\.[cm]?[jt]sx?$/.test(args.path) && path.extname(args.path)) {
+					return { path: 'this-doesnt-matter', namespace: 'ignore-load' };
+				}
+			});
+			build.onLoad({ filter: /.*/, namespace: 'ignore-load' }, () => ({ contents: '' }));
 		},
 	};
 }
