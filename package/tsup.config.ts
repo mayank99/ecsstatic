@@ -6,7 +6,7 @@ export default <Options>{
 	format: ['cjs', 'esm'],
 	dts: true,
 	splitting: false,
-	outDir: '.',
+	outDir: 'dist',
 	esbuildOptions(options) {
 		options.allowOverwrite = true;
 	},

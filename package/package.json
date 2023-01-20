@@ -12,21 +12,16 @@
 	"module": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": [
-		"*.js",
-		"*.cjs",
-		"*.d.ts",
-		"!overrides.d.ts"
+		"dist"
 	],
 	"exports": {
 		".": {
-			"types": "./index.d.ts",
-			"import": "./index.js",
-			"require": "./index.cjs"
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
 		},
 		"./vite": {
-			"types": "./vite.d.ts",
-			"import": "./vite.js",
-			"require": "./vite.cjs"
+			"import": "./dist/vite.js",
+			"require": "./dist/vite.cjs"
 		}
 	},
 	"dependencies": {
