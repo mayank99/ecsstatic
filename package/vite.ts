@@ -227,7 +227,7 @@ function evalWithEsbuild(expression: string, allVarDeclarations = '') {
 	const treeshaked = esbuild.transformSync(
 		`${allVarDeclarations}\n
 		module.exports = (${expression});`,
-		{ format: 'cjs', target: 'node14', treeShaking: true }
+		{ format: 'cjs', target: 'node14', treeShaking: true, loader: 'jsx' }
 	);
 
 	return nodeEval(treeshaked.code, hash(expression), {}, true);
