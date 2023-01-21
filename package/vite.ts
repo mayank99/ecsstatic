@@ -7,6 +7,7 @@ import postcss from 'postcss';
 import postcssNested from 'postcss-nested';
 import postcssScss from 'postcss-scss';
 import { simple as walk } from 'acorn-walk';
+import autoprefixer from 'autoprefixer';
 import type { Program, TaggedTemplateExpression } from 'estree';
 import type { Plugin, ResolvedConfig } from 'vite';
 
@@ -175,7 +176,9 @@ function processCss(templateContents: string, isScss = false) {
 	const className = `🎈-${hash(templateContents.trim())}`;
 	const unprocessedCss = `${importsAndUses}\n.${className}{${codeWithoutImportsAndUses}}`;
 
-	const plugins = !isScss ? [postcssNested()] : [];
+	const plugins = !isScss
+		? [postcssNested(), autoprefixer(autoprefixerOptions)]
+		: [autoprefixer(autoprefixerOptions)];
 	const options = isScss ? { parser: postcssScss } : {};
 	const { css } = postcss(plugins).process(unprocessedCss, options);
 
@@ -342,3 +345,18 @@ function getHashFromTemplate(templates: TemplateStringsArray, ...args: Array<str
 function normalizePath(original: string) {
 	return original.replace(/\\/g, '/').toLowerCase();
 }
+
+/**
+ * specifically target only last 2 versions of the major browsers.
+ * this keeps the autoprefixing to what is absolutely necessary.
+ * anything extra can be done in the user's vite config.
+ */
+const autoprefixerOptions = {
+	overrideBrowserslist: [
+		'last 2 Chrome versions',
+		'last 2 ChromeAndroid versions',
+		'last 2 Firefox versions',
+		'last 2 Safari major versions and >0.5%',
+		'last 2 iOS major versions and >0.5%',
+	],
+};
