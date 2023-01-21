@@ -7,6 +7,12 @@
 		"type": "git",
 		"url": "git+https://github.com/mayank99/ecsstatic.git"
 	},
+	"author": "Mayank",
+	"keywords": [
+		"css-in-js",
+		"vite",
+		"static"
+	],
 	"type": "module",
 	"main": "index.cjs",
 	"module": "index.js",
