@@ -103,3 +103,7 @@ Huge shoutout to the previous libraries that came before this; ecsstatic would n
 - styled-components / emotion
 - css modules
 - linaria
+
+## Contributing
+
+Found a bug? Missing a feature? Have a question? Open an [issue](https://github.com/mayank99/ecsstatic/issues)!
