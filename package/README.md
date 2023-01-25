@@ -106,4 +106,4 @@ Huge shoutout to the previous libraries that came before this; ecsstatic would n
 
 ## Contributing
 
-Found a bug? Missing a feature? Have a question? Open an [issue](https://github.com/mayank99/ecsstatic/issues)!
+Open an [issue](https://github.com/mayank99/ecsstatic/issues) or see [`CONTRIBUTING.md`](https://github.com/mayank99/ecsstatic/blob/main/CONTRIBUTING.md).
