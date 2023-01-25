@@ -5,11 +5,11 @@ import path from 'path';
 import postcss from 'postcss';
 import postcssNested from 'postcss-nested';
 import postcssScss from 'postcss-scss';
-import { simple as walk } from 'acorn-walk';
+import { ancestor as walk } from 'acorn-walk';
 import autoprefixer from 'autoprefixer';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import type { Program, TaggedTemplateExpression } from 'estree';
+import type * as ESTree from 'estree';
 import type { Plugin, ResolvedConfig } from 'vite';
 
 import hash from './hash.js';
@@ -101,7 +101,7 @@ export function ecsstatic(options: Options = {}) {
 			if (/node_modules/.test(id)) return;
 			if (!/\.[cm]?[jt]sx?$/.test(id)) return;
 
-			const parsedAst = this.parse(code) as Program;
+			const parsedAst = this.parse(code) as ESTree.Program;
 
 			const {
 				cssImportName,
@@ -119,7 +119,7 @@ export function ecsstatic(options: Options = {}) {
 			let inlinedVars = '';
 
 			for (const node of cssTemplateLiterals) {
-				const { start, end, quasi, tag } = node;
+				const { start, end, quasi, tag, _originalName } = node;
 				const isScss = tag.type === 'Identifier' && tag.name === scssImportName;
 
 				// lazy populate inlinedVars until we need it, to delay problems that come with this mess
@@ -141,8 +141,14 @@ export function ecsstatic(options: Options = {}) {
 				const fullCssPath = normalizePath(path.join(path.dirname(id), cssFilename));
 				cssList.set(fullCssPath, css);
 
+				// add the original variable name in DEV mode
+				let _className = `"${className}"`;
+				if (_originalName && viteConfigObj.command === 'serve') {
+					_className = `"🎈-${_originalName} ${className}"`;
+				}
+
 				// replace the tagged template literal with the generated className
-				magicCode.update(start, end, `"${className}"`);
+				magicCode.update(start, end, _className);
 			}
 
 			// remove ecsstatic imports, we don't need them anymore
@@ -198,7 +204,7 @@ async function processTemplateLiteral(rawTemplate: string, { inlinedVars = '' })
 }
 
 /** parses ast and returns info about all css/scss ecsstatic imports */
-function findEcsstaticImports(ast: Program) {
+function findEcsstaticImports(ast: ESTree.Program) {
 	let cssImportName: string | undefined;
 	let scssImportName: string | undefined;
 	let statements: Array<{ start: number; end: number }> = [];
@@ -273,14 +279,45 @@ async function inlineVarsUsingEsbuild(fileId: string, options: { noExternal?: st
 }
 
 /** walks the ast to find all tagged template literals that look like (css`...`) */
-function findCssTaggedTemplateLiterals(ast: Program, tagNames: string[]) {
-	let nodes: Array<TaggedTemplateExpression> = [];
+function findCssTaggedTemplateLiterals(ast: ESTree.Program, tagNames: string[]) {
+	type TaggedTemplateWithName = ESTree.TaggedTemplateExpression & { _originalName?: string };
+
+	let nodes: Array<TaggedTemplateWithName> = [];
 
 	walk(ast as any, {
-		TaggedTemplateExpression(node) {
-			const _node = node as TaggedTemplateExpression;
-			if (!(_node.tag.type === 'Identifier' && tagNames.includes(_node.tag.name))) return;
-			nodes.push(_node);
+		TaggedTemplateExpression(node, ancestors) {
+			const _node = node as TaggedTemplateWithName;
+
+			if (_node.tag.type === 'Identifier' && tagNames.includes(_node.tag.name)) {
+				// last node is the current node, so we look at the second last node to find a name
+				const prevNode = (ancestors as any[]).at(-2) as ESTree.Node;
+
+				switch (prevNode?.type) {
+					case 'VariableDeclarator': {
+						if (
+							prevNode.id.type === 'Identifier' &&
+							prevNode.init?.start === _node.start &&
+							prevNode.init?.end === _node.end
+						) {
+							_node._originalName = prevNode.id.name;
+						}
+						break;
+					}
+					case 'Property': {
+						if (
+							prevNode.type === 'Property' &&
+							prevNode.value.start === _node.start &&
+							prevNode.value.end === _node.end &&
+							prevNode.key.type === 'Identifier'
+						) {
+							_node._originalName = prevNode.key.name;
+						}
+						break;
+					}
+				}
+
+				nodes.push(_node);
+			}
 		},
 	});
 
