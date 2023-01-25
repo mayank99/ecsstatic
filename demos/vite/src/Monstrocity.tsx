@@ -1,9 +1,7 @@
 import { scss } from '@acab/ecsstatic';
 import { useState } from 'react';
-// @ts-ignore
-import { Indigo } from 'open-props/src/colors';
-
-import Button from './Button';
+import { Indigo } from 'open-props/src/props.colors.js';
+import Button from './Button.js';
 
 export default () => {
 	const [count, setCount] = useState(0);

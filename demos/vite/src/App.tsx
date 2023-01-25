@@ -1,4 +1,4 @@
-import Monstrocity from './Monstrocity';
+import Monstrocity from './Monstrocity.js';
 
 function App() {
 	return (

@@ -13,7 +13,7 @@
 	"dependencies": {
 		"@acab/reset.css": "^0.5.3",
 		"@astrojs/preact": "^1.2.0",
-		"astro": "1",
+		"astro": "2",
 		"open-props-scss": "^0.4.1",
 		"preact": "^10.6.5",
 		"rough-notation": "^0.5.1",
