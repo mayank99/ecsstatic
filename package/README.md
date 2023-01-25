@@ -80,11 +80,11 @@ const button = scss`
 
 Evaluating expressions interpolated in the template strings works out-of-the-box for many cases but might not work perfectly in big files/projects. If you are seeing unexpected results, try moving your component out to a smaller file.
 
-By default, npm packages are not resolved (they are "external"-ized). For importing a package, pass its name to the `resolvePackages` option.
+By default, npm packages are not processed (they are "external"-ized) before evaluating expressions. This requires the package to be compatible with Node ESM. If it doesn't work, you can pass its name to the `resolvePackages` option to force it to be processed before evaluating expressions.
 
 ```js
 export default defineConfig({
-  plugins: [ecsstatic({ resolvePackages: ['open-props'] })],
+  plugins: [ecsstatic({ resolvePackages: ['some-non-esm-pkg'] })],
 });
 ```
 

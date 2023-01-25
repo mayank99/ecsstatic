@@ -25,14 +25,13 @@ type Options = {
 	 */
 	evaluateExpressions?: boolean;
 	/**
-	 * By default, packages are not resolved (everything is "external"-ized) because it is faster this way.
-	 * To use an npm package, you can pass its name in an array here.
-	 *
-	 * @experimental This feature may not work perfectly.
+	 * By default,  npm packages are not processed (they are "external"-ized) before evaluating expressions.
+	 * This requires the package to be compatible with Node ESM. If it doesn't work, then you can pass its name
+	 * to `resolvePackages` to force it to be processed before evaluating expressions.
 	 *
 	 * @example
 	 * export default defineConfig({
-	 * 	plugins: [ecsstatic({ resolvePackages: ['open-props'] })],
+	 * 	plugins: [ecsstatic({ resolvePackages: ['some-non-esm-pkg'] })],
 	 * });
 	 */
 	resolvePackages?: string[];
