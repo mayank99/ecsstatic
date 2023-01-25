@@ -5,11 +5,5 @@ import Inspect from 'vite-plugin-inspect';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [
-		react(),
-		ecsstatic({
-			resolvePackages: ['open-props'],
-		}),
-		Inspect(),
-	],
+	plugins: [react(), ecsstatic(), Inspect()],
 });

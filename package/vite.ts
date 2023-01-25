@@ -1,13 +1,14 @@
 import esbuild from 'esbuild';
 import externalizeAllPackagesExcept from 'esbuild-plugin-noexternal';
 import MagicString from 'magic-string';
-import nodeEval from 'eval';
 import path from 'path';
 import postcss from 'postcss';
 import postcssNested from 'postcss-nested';
 import postcssScss from 'postcss-scss';
 import { simple as walk } from 'acorn-walk';
 import autoprefixer from 'autoprefixer';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import type { Program, TaggedTemplateExpression } from 'estree';
 import type { Plugin, ResolvedConfig } from 'vite';
 
@@ -129,7 +130,7 @@ export function ecsstatic(options: Options = {}) {
 				const rawTemplate = code.slice(quasi.start, quasi.end).trim();
 				const templateContents =
 					evaluateExpressions && quasi.expressions.length
-						? processTemplateLiteral(rawTemplate, { inlinedVars })
+						? await processTemplateLiteral(rawTemplate, { inlinedVars })
 						: rawTemplate.slice(1, rawTemplate.length - 2);
 				const [css, className] = processCss(templateContents, isScss);
 
@@ -186,9 +187,9 @@ function processCss(templateContents: string, isScss = false) {
 }
 
 /** resolves all expressions in the template literal and returns a plain string */
-function processTemplateLiteral(rawTemplate: string, { inlinedVars = '' }) {
+async function processTemplateLiteral(rawTemplate: string, { inlinedVars = '' }) {
 	try {
-		const processedTemplate = evalWithEsbuild(rawTemplate, inlinedVars) as string;
+		const processedTemplate = (await evalWithEsbuild(rawTemplate, inlinedVars)) as string;
 		return processedTemplate;
 	} catch (err) {
 		console.error('Unable to resolve expression in template literal');
@@ -224,16 +225,23 @@ function findEcsstaticImports(ast: Program) {
 
 /**
  * uses esbuild.transform to tree-shake unused var declarations
- * before evaluating it with node_eval
+ * before evaluating it in a node child_process
  */
-function evalWithEsbuild(expression: string, allVarDeclarations = '') {
-	const treeshaked = esbuild.transformSync(
-		`${allVarDeclarations}\n
-		module.exports = (${expression});`,
-		{ format: 'cjs', target: 'node14', treeShaking: true, loader: 'jsx' }
-	);
+async function evalWithEsbuild(expression: string, allVarDeclarations = '') {
+	// strip all console logs
+	const withoutConsole = esbuild.transformSync(allVarDeclarations, {
+		format: 'esm',
+		loader: 'jsx',
+		drop: ['console'],
+	});
+	// add console log for the expression we want to evaluate
+	const treeshaked = esbuild.transformSync(`${withoutConsole.code}\nconsole.log(${expression});`, {
+		format: 'esm',
+		loader: 'jsx',
+		treeShaking: false,
+	});
 
-	return nodeEval(treeshaked.code, hash(expression), {}, true);
+	return nodeEval(treeshaked.code);
 }
 
 /** uses esbuild.build to resolve all imports and return the "bundled" code */
@@ -360,3 +368,15 @@ const autoprefixerOptions = {
 		'last 2 iOS major versions and >0.5%',
 	],
 };
+
+/** runs code using `node --eval` in a `child_process` and returns console output */
+async function nodeEval(code: string) {
+	const args = ['--eval', code, '--input-type=module'];
+	try {
+		const { stdout, stderr } = await promisify(execFile)('node', args);
+		if (stderr) throw 'fuck!';
+		return stdout;
+	} catch {
+		throw 'fuck!';
+	}
+}
