@@ -1,0 +1,34 @@
+/*
+ * Is this... is this a CSS file?? In my Application™️???? 🤢
+ *
+ * Yes. Believe it or not, CSS is perfectly fine to use, especially for global styles.
+ * There is no reason to force CSS-in-JS here, because the classes don't need to be scoped.
+ */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+:root {
+	font-family: Inter, system-ui, Arial, sans-serif;
+	line-height: 1.5;
+	color: rgba(255, 255, 255, 0.87);
+	background-color: #242424;
+}
+
+@media (prefers-color-scheme: light) {
+	:root {
+		color: #213547;
+		background-color: #ffffff;
+	}
+}
+
+body {
+	margin: 0;
+	display: flex;
+	place-content: center;
+	place-items: center;
+	min-height: 100vh;
+}
