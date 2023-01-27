@@ -3,6 +3,7 @@ import externalizeAllPackagesExcept from 'esbuild-plugin-noexternal';
 import MagicString from 'magic-string';
 import path from 'path';
 import postcss from 'postcss';
+import postcssModules from 'postcss-modules';
 import postcssNested from 'postcss-nested';
 import postcssScss from 'postcss-scss';
 import { ancestor as walk } from 'acorn-walk';
@@ -107,6 +108,7 @@ export function ecsstatic(options: Options = {}) {
 			for (const node of cssTemplateLiterals) {
 				const { start, end, quasi, tag, _originalName } = node;
 				const isScss = tag.type === 'Identifier' && ecsstaticImports.get(tag.name)?.isScss;
+				const isModule = tag.type === 'Identifier' && ecsstaticImports.get(tag.name)?.isModule;
 
 				// lazy populate inlinedVars until we need it, to delay problems that come with this mess
 				if (quasi.expressions.length && !inlinedVars) {
@@ -117,23 +119,30 @@ export function ecsstatic(options: Options = {}) {
 				const templateContents = quasi.expressions.length
 					? await processTemplateLiteral(rawTemplate, { inlinedVars })
 					: rawTemplate.slice(1, rawTemplate.length - 2);
-				const [css, className] = processCss(templateContents, isScss);
+
+				// do the scoping!
+				const [css, modulesOrClass] = await processCss(templateContents, { isScss, isModule });
+
+				let returnValue = ''; // what we will replace the tagged template literal with
+				if (isModule) {
+					returnValue = JSON.stringify(modulesOrClass);
+				} else {
+					returnValue = `"${modulesOrClass}"`;
+					// add the original variable name in DEV mode
+					if (_originalName && viteConfigObj.command === 'serve') {
+						returnValue = `"🎈-${_originalName} ${modulesOrClass}"`;
+					}
+				}
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
-				const cssFilename = `${className}.acab.${extension}`.toLowerCase();
+				const cssFilename = `${hash(templateContents.trim())}.acab.${extension}`.toLowerCase();
 				magicCode.append(`import "./${cssFilename}";\n`);
 				const fullCssPath = normalizePath(path.join(path.dirname(id), cssFilename));
 				cssList.set(fullCssPath, css);
 
-				// add the original variable name in DEV mode
-				let _className = `"${className}"`;
-				if (_originalName && viteConfigObj.command === 'serve') {
-					_className = `"🎈-${_originalName} ${className}"`;
-				}
-
-				// replace the tagged template literal with the generated className
-				magicCode.update(start, end, _className);
+				// replace the tagged template literal with the generated class names
+				magicCode.update(start, end, returnValue);
 			}
 
 			// remove ecsstatic imports, we don't need them anymore
@@ -147,11 +156,8 @@ export function ecsstatic(options: Options = {}) {
 	};
 }
 
-/**
- * processes template strings using postcss and
- * returns it along with a hashed classname based on the string contents.
- */
-function processCss(templateContents: string, isScss = false) {
+/**	processes css and returns it along with hashed classeses */
+async function processCss(templateContents: string, { isScss = false, isModule = false }) {
 	const isImportOrUse = (line: string) =>
 		line.trim().startsWith('@import') || line.trim().startsWith('@use');
 
@@ -166,15 +172,37 @@ function processCss(templateContents: string, isScss = false) {
 		.join('\n');
 
 	const className = `🎈-${hash(templateContents.trim())}`;
-	const unprocessedCss = `${importsAndUses}\n.${className}{${codeWithoutImportsAndUses}}`;
+	const unprocessedCss = isModule
+		? templateContents
+		: `${importsAndUses}\n.${className}{${codeWithoutImportsAndUses}}`;
 
-	const plugins = !isScss
-		? [postcssNested(), autoprefixer(autoprefixerOptions)]
-		: [autoprefixer(autoprefixerOptions)];
-	const options = isScss ? { parser: postcssScss } : {};
-	const { css } = postcss(plugins).process(unprocessedCss, options);
+	const { css, modules } = await postprocessCss(unprocessedCss, { isScss, isModule });
 
-	return [css, className];
+	if (isModule) {
+		return [css, modules] as const;
+	}
+
+	return [css, className] as const;
+}
+
+/** runs postcss with autoprefixer and optionally css-modules */
+async function postprocessCss(rawCss: string, { isScss = false, isModule = false }) {
+	let modules: Record<string, string> = {};
+
+	const plugins = [
+		!isScss && postcssNested(),
+		autoprefixer(autoprefixerOptions),
+		isModule &&
+			postcssModules({
+				generateScopedName: '🎈-[local]-[hash:base64:6]',
+				getJSON: (_, json) => void (modules = json),
+			}),
+	].flatMap((value) => (value ? [value] : []));
+
+	const options = isScss ? { parser: postcssScss, from: undefined } : { from: undefined };
+	const { css } = await postcss(plugins).process(rawCss, options);
+
+	return { css, modules };
 }
 
 /** resolves all expressions in the template literal and returns a plain string */
@@ -190,13 +218,17 @@ async function processTemplateLiteral(rawTemplate: string, { inlinedVars = '' })
 
 /** parses ast and returns info about all css/scss ecsstatic imports */
 function findEcsstaticImports(ast: ESTree.Program) {
-	const statements = new Map<string, { isScss: boolean; start: number; end: number }>();
+	const statements = new Map<
+		string,
+		{ isScss: boolean; isModule: boolean; start: number; end: number }
+	>();
 
 	for (const node of ast.body.filter((node) => node.type === 'ImportDeclaration')) {
 		if (
 			node.type === 'ImportDeclaration' &&
 			node.source.value?.toString().startsWith('@acab/ecsstatic')
 		) {
+			const isModule = node.source.value?.toString().endsWith('modules');
 			const { start, end } = node;
 			node.specifiers.forEach((specifier) => {
 				if (
@@ -205,7 +237,7 @@ function findEcsstaticImports(ast: ESTree.Program) {
 				) {
 					const tagName = specifier.local.name;
 					const isScss = specifier.imported.name === 'scss';
-					statements.set(tagName, { isScss, start, end });
+					statements.set(tagName, { isScss, isModule, start, end });
 				}
 			});
 		}
@@ -316,25 +348,29 @@ function findCssTaggedTemplateLiterals(ast: ESTree.Program, tagNames: string[]) 
 function loadDummyEcsstatic() {
 	const hashStr = hash.toString();
 	const getHashFromTemplateStr = getHashFromTemplate.toString();
-	const contents = `${hashStr}\n${getHashFromTemplateStr}\n
+	const indexContents = `${hashStr}\n${getHashFromTemplateStr}\n
 	  export const css = getHashFromTemplate;
 	  export const scss = getHashFromTemplate;
 	`;
+	const modulesContents = `new Proxy({}, {
+    get() { throw 'please don't do this. css modules are hard to evaluate inside other strings :(' }
+	})`;
 
 	return <esbuild.Plugin>{
 		name: 'load-dummy-ecsstatic',
 		setup(build) {
 			build.onResolve({ filter: /^@acab\/ecsstatic$/ }, (args) => {
-				return {
-					namespace: 'ecsstatic',
-					path: args.path,
-				};
+				return { namespace: 'ecsstatic', path: args.path };
 			});
 			build.onLoad({ filter: /(.*)/, namespace: 'ecsstatic' }, () => {
-				return {
-					contents,
-					loader: 'js',
-				};
+				return { contents: indexContents, loader: 'js' };
+			});
+
+			build.onResolve({ filter: /^@acab\/ecsstatic\/modules$/ }, (args) => {
+				return { namespace: 'ecsstatic-modules', path: args.path };
+			});
+			build.onLoad({ filter: /(.*)/, namespace: 'ecsstatic-modules' }, () => {
+				return { contents: modulesContents, loader: 'js' };
 			});
 		},
 	};
