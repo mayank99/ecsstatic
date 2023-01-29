@@ -219,20 +219,29 @@ function findEcsstaticImports(ast: ESTree.Program) {
  * before evaluating it in a node child_process
  */
 async function evalWithEsbuild(expression: string, allVarDeclarations = '') {
-	// strip all console logs
-	const withoutConsole = esbuild.transformSync(allVarDeclarations, {
+	const treeshaked = esbuild.transformSync(allVarDeclarations, {
 		format: 'esm',
 		loader: 'jsx',
+		treeShaking: true,
 		drop: ['console'],
 	});
-	// add console log for the expression we want to evaluate
-	const treeshaked = esbuild.transformSync(`${withoutConsole.code}\nconsole.log(${expression});`, {
-		format: 'esm',
-		loader: 'jsx',
-		treeShaking: false,
-	});
 
-	return nodeEval(treeshaked.code);
+	// we will log the expression in a child_process using node --eval
+	// but we want to ignore any logs from externalized packages and only want the very last log
+	// so lets detect it using a special value. it's a hack but life is too short
+	const logIndicator = '___eccstatic_LOG_YOLO: ';
+	const code = `${treeshaked.code};console.log('${logIndicator}', ${expression})`;
+
+	const args = ['--eval', code, '--input-type=module'];
+	try {
+		const { stdout, stderr } = await promisify(execFile)('node', args);
+		if (stderr) throw 'fuck!';
+
+		const finalValue = stdout.substring(stdout.indexOf(logIndicator) + logIndicator.length);
+		return finalValue;
+	} catch {
+		throw 'fuck!';
+	}
 }
 
 /** uses esbuild.build to resolve all imports and return the "bundled" code */
@@ -390,15 +399,3 @@ const autoprefixerOptions = {
 		'last 2 iOS major versions and >0.5%',
 	],
 };
-
-/** runs code using `node --eval` in a `child_process` and returns console output */
-async function nodeEval(code: string) {
-	const args = ['--eval', code, '--input-type=module'];
-	try {
-		const { stdout, stderr } = await promisify(execFile)('node', args);
-		if (stderr) throw 'fuck!';
-		return stdout;
-	} catch {
-		throw 'fuck!';
-	}
-}
