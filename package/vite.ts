@@ -16,15 +16,6 @@ import hash from './hash.js';
 
 type Options = {
 	/**
-	 * Should expressions (including other class names) inside template literals be evaluated?
-	 *
-	 * Note: This will only work for top-level expressions within the project. It does not look inside components and
-	 * also ignores npm packages. If you need to use npm packages, see the `resolvePackages` option.
-	 *
-	 * @default true
-	 */
-	evaluateExpressions?: boolean;
-	/**
 	 * By default,  npm packages are not processed (they are "external"-ized) before evaluating expressions.
 	 * This requires the package to be compatible with Node ESM. If it doesn't work, then you can pass its name
 	 * to `resolvePackages` to force it to be processed before evaluating expressions.
@@ -48,7 +39,7 @@ type Options = {
  * });
  */
 export function ecsstatic(options: Options = {}) {
-	const { evaluateExpressions = true, resolvePackages = [] } = options;
+	const { resolvePackages = [] } = options;
 
 	const cssList = new Map<string, string>();
 	let viteConfigObj: ResolvedConfig;
@@ -118,15 +109,14 @@ export function ecsstatic(options: Options = {}) {
 				const isScss = tag.type === 'Identifier' && ecsstaticImports.get(tag.name)?.isScss;
 
 				// lazy populate inlinedVars until we need it, to delay problems that come with this mess
-				if (quasi.expressions.length && evaluateExpressions && !inlinedVars) {
+				if (quasi.expressions.length && !inlinedVars) {
 					inlinedVars = await inlineVarsUsingEsbuild(id, { noExternal: resolvePackages });
 				}
 
 				const rawTemplate = code.slice(quasi.start, quasi.end).trim();
-				const templateContents =
-					evaluateExpressions && quasi.expressions.length
-						? await processTemplateLiteral(rawTemplate, { inlinedVars })
-						: rawTemplate.slice(1, rawTemplate.length - 2);
+				const templateContents = quasi.expressions.length
+					? await processTemplateLiteral(rawTemplate, { inlinedVars })
+					: rawTemplate.slice(1, rawTemplate.length - 2);
 				const [css, className] = processCss(templateContents, isScss);
 
 				// add processed css to a .css file
