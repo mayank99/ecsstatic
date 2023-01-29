@@ -26,6 +26,16 @@ type Options = {
 	 * });
 	 */
 	resolvePackages?: string[];
+	/**
+	 * By default, hashed class names will be prefixed by "🎈". For example: `🎈-jk0pkr`.
+	 * This option can be used to change the prefix to something else.
+	 *
+	 * @experimental This feature is useful and will continue to be available, but
+	 * this API is considered "unstable", meaning it might be renamed or reworked in a future release.
+	 *
+	 * @default '🎈'
+	 */
+	classNamePrefix?: string;
 };
 
 /**
@@ -39,7 +49,7 @@ type Options = {
  * });
  */
 export function ecsstatic(options: Options = {}) {
-	const { resolvePackages = [] } = options;
+	const { resolvePackages = [], classNamePrefix = '🎈' } = options;
 
 	const cssList = new Map<string, string>();
 	let viteConfigObj: ResolvedConfig;
@@ -112,18 +122,22 @@ export function ecsstatic(options: Options = {}) {
 
 				// lazy populate inlinedVars until we need it, to delay problems that come with this mess
 				if (quasi.expressions.length && !inlinedVars) {
-					inlinedVars = await inlineVarsUsingEsbuild(id, { noExternal: resolvePackages });
+					inlinedVars = await inlineVarsUsingEsbuild(id, {
+						noExternal: resolvePackages,
+						classNamePrefix,
+					});
 				}
 
 				const rawTemplate = code.slice(quasi.start, quasi.end).trim();
 				const templateContents = quasi.expressions.length
 					? await processTemplateLiteral(rawTemplate, { inlinedVars })
 					: rawTemplate.slice(1, rawTemplate.length - 2);
-				const [css, className] = processCss(templateContents, isScss);
+				const [css, className] = processCss(templateContents, { isScss, classNamePrefix });
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
-				const cssFilename = `${className.split('🎈-')[1]}.acab.${extension}`.toLowerCase();
+				let cssFilename = `${className.split(`${classNamePrefix}-`)[1]}`;
+				cssFilename = `${cssFilename}.acab.${extension}`.toLowerCase();
 				magicCode.append(`import "./${cssFilename}";\n`);
 				const fullCssPath = normalizePath(path.join(path.dirname(id), cssFilename));
 				cssList.set(fullCssPath, css);
@@ -131,7 +145,7 @@ export function ecsstatic(options: Options = {}) {
 				// add the original variable name in DEV mode
 				let _className = `"${className}"`;
 				if (_originalName && viteConfigObj.command === 'serve') {
-					_className = `"🎈-${_originalName} ${className}"`;
+					_className = `"${classNamePrefix}-${_originalName} ${className}"`;
 				}
 
 				// replace the tagged template literal with the generated className
@@ -153,7 +167,7 @@ export function ecsstatic(options: Options = {}) {
  * processes template strings using postcss and
  * returns it along with a hashed classname based on the string contents.
  */
-function processCss(templateContents: string, isScss = false) {
+function processCss(templateContents: string, { isScss = false, classNamePrefix = '🎈' }) {
 	const isImportOrUse = (line: string) =>
 		line.trim().startsWith('@import') || line.trim().startsWith('@use');
 
@@ -167,7 +181,7 @@ function processCss(templateContents: string, isScss = false) {
 		.filter((line) => !isImportOrUse(line))
 		.join('\n');
 
-	const className = `🎈-${hash(templateContents.trim())}`;
+	const className = `${classNamePrefix}-${hash(templateContents.trim())}`;
 	const unprocessedCss = `${importsAndUses}\n.${className}{${codeWithoutImportsAndUses}}`;
 
 	const plugins = !isScss
@@ -247,9 +261,10 @@ async function evalWithEsbuild(expression: string, allVarDeclarations = '') {
 }
 
 /** uses esbuild.build to resolve all imports and return the "bundled" code */
-async function inlineVarsUsingEsbuild(fileId: string, options: { noExternal?: string[] }) {
-	const { noExternal = [] } = options;
-
+async function inlineVarsUsingEsbuild(
+	fileId: string,
+	{ noExternal = [] as string[], classNamePrefix = '🎈' }
+) {
 	const processedCode = (
 		await esbuild.build({
 			entryPoints: [fileId],
@@ -264,7 +279,7 @@ async function inlineVarsUsingEsbuild(fileId: string, options: { noExternal?: st
 			},
 			keepNames: true,
 			plugins: [
-				loadDummyEcsstatic(),
+				loadDummyEcsstatic({ classNamePrefix }),
 				externalizeAllPackagesExcept(noExternal),
 				ignoreUnknownExtensions(),
 			],
@@ -324,9 +339,9 @@ function findCssTaggedTemplateLiterals(ast: ESTree.Program, tagNames: string[]) 
  * esbuild plugin that resolves and loads a dummy version of ecsstatic.
  * the returned css/scss functions generate hashes but don't emit css.
  */
-function loadDummyEcsstatic() {
+function loadDummyEcsstatic({ classNamePrefix = '🎈' }) {
 	const hashStr = hash.toString();
-	const getHashFromTemplateStr = getHashFromTemplate.toString();
+	const getHashFromTemplateStr = getHashFromTemplate.toString().replace('🎈', classNamePrefix);
 	const contents = `${hashStr}\n${getHashFromTemplateStr}\n
 	  export const css = getHashFromTemplate;
 	  export const scss = getHashFromTemplate;
