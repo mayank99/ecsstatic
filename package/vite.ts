@@ -229,7 +229,7 @@ async function evalWithEsbuild(expression: string, allVarDeclarations = '') {
 	// we will log the expression in a child_process using node --eval
 	// but we want to ignore any logs from externalized packages and only want the very last log
 	// so lets detect it using a special value. it's a hack but life is too short
-	const logIndicator = '___eccstatic_LOG_YOLO: ';
+	const logIndicator = '___ecsstatic_LOG_YOLO: ';
 	const code = `${treeshaked.code};console.log('${logIndicator}', ${expression})`;
 
 	const args = ['--eval', code, '--input-type=module'];
