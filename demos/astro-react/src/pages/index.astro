@@ -1,0 +1,45 @@
+---
+import App from '../App';
+---
+
+<html lang='en'>
+	<head>
+		<meta charset='utf-8' />
+		<meta name='viewport' content='width=device-width' />
+		<meta name='color-scheme' content='dark' />
+		<title>ecsstatic + astro + react</title>
+	</head>
+	<body>
+		<App client:load />
+	</body>
+</html>
+
+<style is:global>
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	:root {
+		font-family: Inter, system-ui, Arial, sans-serif;
+		line-height: 1.5;
+		color: rgba(255, 255, 255, 0.87);
+		background-color: #242424;
+	}
+
+	@media (prefers-color-scheme: light) {
+		:root {
+			color: #213547;
+			background-color: #ffffff;
+		}
+	}
+
+	body {
+		margin: 0;
+		display: flex;
+		place-content: center;
+		place-items: center;
+		min-height: 100vh;
+	}
+</style>

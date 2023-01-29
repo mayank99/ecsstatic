@@ -1,5 +1,5 @@
 {
-	"name": "ecsstatic-demo",
+	"name": "demo-astro-react",
 	"type": "module",
 	"version": "0.0.1",
 	"private": true,
@@ -12,10 +12,12 @@
 	},
 	"dependencies": {
 		"@acab/ecsstatic": "*",
-		"@astrojs/react": "^1.2.2",
+		"@astrojs/react": "2",
 		"@types/react": "^18.0.21",
 		"@types/react-dom": "^18.0.6",
 		"astro": "2",
+		"clsx": "^1.2.1",
+		"open-props": "^1.5.5",
 		"react": "^18.0.0",
 		"react-dom": "^18.0.0"
 	}

@@ -10,21 +10,25 @@ importers:
       prettier: 2.7.1
       turbo: 1.7.0
 
-  demos/astro:
+  demos/astro-react:
     specifiers:
       '@acab/ecsstatic': '*'
-      '@astrojs/react': ^1.2.2
+      '@astrojs/react': '2'
       '@types/react': ^18.0.21
       '@types/react-dom': ^18.0.6
       astro: '2'
+      clsx: ^1.2.1
+      open-props: ^1.5.5
       react: ^18.0.0
       react-dom: ^18.0.0
     dependencies:
       '@acab/ecsstatic': link:../../package
-      '@astrojs/react': 1.2.2_ie75ejlwqy5zh3tldgt7pftwcu
+      '@astrojs/react': 2.0.1_ie75ejlwqy5zh3tldgt7pftwcu
       '@types/react': 18.0.26
       '@types/react-dom': 18.0.10
-      astro: 2.0.0
+      astro: 2.0.2
+      clsx: 1.2.1
+      open-props: 1.5.5
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
 
@@ -183,7 +187,30 @@ packages:
       astro: ^2.0.0
     dependencies:
       '@astrojs/prism': 2.0.0
-      astro: 2.0.0
+      astro: 2.0.0_sass@1.57.1
+      github-slugger: 1.5.0
+      import-meta-resolve: 2.2.1
+      rehype-raw: 6.1.1
+      rehype-stringify: 9.0.3
+      remark-gfm: 3.0.1
+      remark-parse: 10.0.1
+      remark-rehype: 10.1.0
+      remark-smartypants: 2.0.0
+      shiki: 0.11.1
+      unified: 10.1.2
+      unist-util-visit: 4.1.1
+      vfile: 5.3.6
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
+
+  /@astrojs/markdown-remark/2.0.1_astro@2.0.2:
+    resolution: {integrity: sha512-xQF1rXGJN18m+zZucwRRtmNehuhPMMhZhi6HWKrtpEAKnHSPk8lqf1GXgKH7/Sypglu8ivdECZ+EGs6kOYVasQ==}
+    peerDependencies:
+      astro: ^2.0.2
+    dependencies:
+      '@astrojs/prism': 2.0.0
+      astro: 2.0.2
       github-slugger: 1.5.0
       import-meta-resolve: 2.2.1
       rehype-raw: 6.1.1
@@ -223,9 +250,9 @@ packages:
       prismjs: 1.29.0
     dev: false
 
-  /@astrojs/react/1.2.2_ie75ejlwqy5zh3tldgt7pftwcu:
-    resolution: {integrity: sha512-ab9fYvzkC74J7N+M3DWQuZgwu7sYjW0aLO3sEAdCX/jZZz+0BhrqS8m9QjtGJyQK/niF4tgJjpPfadopxKc56g==}
-    engines: {node: ^14.18.0 || >=16.12.0}
+  /@astrojs/react/2.0.1_ie75ejlwqy5zh3tldgt7pftwcu:
+    resolution: {integrity: sha512-EhpYg6afa3ks0ofc1mBcdbQvcQMt3mn5/O2K98lvg9LbTaYRfSvwnzfgVlc0boSaQYFrzssoeOtCUhNVUb1krg==}
+    engines: {node: '>=16.12.0'}
     peerDependencies:
       '@types/react': ^17.0.50 || ^18.0.21
       '@types/react-dom': ^17.0.17 || ^18.0.6
@@ -1383,73 +1410,6 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /astro/2.0.0:
-    resolution: {integrity: sha512-4ihZinpZXAgHbLPIPLsrXedZ//geJ5EvnzVk4DMrcUvk9ehcgSwyo2sJtG4QtmnHC92Zkmb8IiScJfczEm7ceA==}
-    engines: {node: '>=16.12.0', npm: '>=6.14.0'}
-    hasBin: true
-    dependencies:
-      '@astrojs/compiler': 1.0.1
-      '@astrojs/language-server': 0.28.3
-      '@astrojs/markdown-remark': 2.0.0_astro@2.0.0
-      '@astrojs/telemetry': 2.0.0
-      '@astrojs/webapi': 2.0.0
-      '@babel/core': 7.20.12
-      '@babel/generator': 7.20.7
-      '@babel/parser': 7.20.7
-      '@babel/plugin-transform-react-jsx': 7.20.7_@babel+core@7.20.12
-      '@babel/traverse': 7.20.12
-      '@babel/types': 7.20.7
-      '@types/babel__core': 7.1.20
-      '@types/yargs-parser': 21.0.0
-      acorn: 8.8.1
-      boxen: 6.2.1
-      ci-info: 3.7.1
-      common-ancestor-path: 1.0.1
-      cookie: 0.5.0
-      debug: 4.3.4
-      deepmerge-ts: 4.2.2
-      devalue: 4.2.0
-      diff: 5.1.0
-      es-module-lexer: 1.1.0
-      estree-walker: 3.0.2
-      execa: 6.1.0
-      fast-glob: 3.2.12
-      github-slugger: 2.0.0
-      gray-matter: 4.0.3
-      html-escaper: 3.0.3
-      kleur: 4.1.5
-      magic-string: 0.27.0
-      mime: 3.0.0
-      ora: 6.1.2
-      path-to-regexp: 6.2.1
-      preferred-pm: 3.0.3
-      prompts: 2.4.2
-      rehype: 12.0.1
-      semver: 7.3.8
-      server-destroy: 1.0.1
-      shiki: 0.11.1
-      slash: 4.0.0
-      string-width: 5.1.2
-      strip-ansi: 7.0.1
-      supports-esm: 1.0.0
-      tsconfig-resolver: 3.0.1
-      typescript: 4.9.4
-      unist-util-visit: 4.1.1
-      vfile: 5.3.6
-      vite: 4.0.4
-      vitefu: 0.2.4_vite@4.0.4
-      yargs-parser: 21.1.1
-      zod: 3.20.2
-    transitivePeerDependencies:
-      - '@types/node'
-      - less
-      - sass
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-    dev: false
-
   /astro/2.0.0_sass@1.57.1:
     resolution: {integrity: sha512-4ihZinpZXAgHbLPIPLsrXedZ//geJ5EvnzVk4DMrcUvk9ehcgSwyo2sJtG4QtmnHC92Zkmb8IiScJfczEm7ceA==}
     engines: {node: '>=16.12.0', npm: '>=6.14.0'}
@@ -1504,6 +1464,73 @@ packages:
       unist-util-visit: 4.1.1
       vfile: 5.3.6
       vite: 4.0.4_sass@1.57.1
+      vitefu: 0.2.4_vite@4.0.4
+      yargs-parser: 21.1.1
+      zod: 3.20.2
+    transitivePeerDependencies:
+      - '@types/node'
+      - less
+      - sass
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+    dev: false
+
+  /astro/2.0.2:
+    resolution: {integrity: sha512-47N1jLWNxSri7kWfIfgcEnQJZWTvd0gXhNC3P2ZHiiurl4nOxFC5ULsW5MDDTjTzQ1S7y1RoaL9XxYm+Rury7w==}
+    engines: {node: '>=16.12.0', npm: '>=6.14.0'}
+    hasBin: true
+    dependencies:
+      '@astrojs/compiler': 1.0.1
+      '@astrojs/language-server': 0.28.3
+      '@astrojs/markdown-remark': 2.0.1_astro@2.0.2
+      '@astrojs/telemetry': 2.0.0
+      '@astrojs/webapi': 2.0.0
+      '@babel/core': 7.20.12
+      '@babel/generator': 7.20.7
+      '@babel/parser': 7.20.7
+      '@babel/plugin-transform-react-jsx': 7.20.7_@babel+core@7.20.12
+      '@babel/traverse': 7.20.12
+      '@babel/types': 7.20.7
+      '@types/babel__core': 7.1.20
+      '@types/yargs-parser': 21.0.0
+      acorn: 8.8.1
+      boxen: 6.2.1
+      ci-info: 3.7.1
+      common-ancestor-path: 1.0.1
+      cookie: 0.5.0
+      debug: 4.3.4
+      deepmerge-ts: 4.2.2
+      devalue: 4.2.0
+      diff: 5.1.0
+      es-module-lexer: 1.1.0
+      estree-walker: 3.0.2
+      execa: 6.1.0
+      fast-glob: 3.2.12
+      github-slugger: 2.0.0
+      gray-matter: 4.0.3
+      html-escaper: 3.0.3
+      kleur: 4.1.5
+      magic-string: 0.27.0
+      mime: 3.0.0
+      ora: 6.1.2
+      path-to-regexp: 6.2.1
+      preferred-pm: 3.0.3
+      prompts: 2.4.2
+      rehype: 12.0.1
+      semver: 7.3.8
+      server-destroy: 1.0.1
+      shiki: 0.11.1
+      slash: 4.0.0
+      string-width: 5.1.2
+      strip-ansi: 7.0.1
+      supports-esm: 1.0.0
+      tsconfig-resolver: 3.0.1
+      typescript: 4.9.4
+      unist-util-visit: 4.1.1
+      vfile: 5.3.6
+      vite: 4.0.4
       vitefu: 0.2.4_vite@4.0.4
       yargs-parser: 21.1.1
       zod: 3.20.2
@@ -1749,7 +1776,6 @@ packages:
   /clsx/1.2.1:
     resolution: {integrity: sha512-EcR6r5a8bj6pu3ycsa/E/cKVGuTgZJZdsyUYHOksG/UHIiKfjxzRxYJpyVBwYaQeOvghal9fcc4PidlgzugAQg==}
     engines: {node: '>=6'}
-    dev: true
 
   /color-convert/1.9.3:
     resolution: {integrity: sha512-QfAUtd+vFdAtFQcC8CCyYt1fYWxSqAiK2cSD6zDB8N3cpsEBAvRxp9zOGg6G/SHHJYAT88/az/IuDGALsNVbGg==}
