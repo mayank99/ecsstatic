@@ -1,7 +1,7 @@
 {
 	"name": "@acab/ecsstatic",
 	"description": "The predefinite CSS-in-JS library for Vite.",
-	"version": "0.2.0",
+	"version": "0.3.0-dev.1",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -33,6 +33,11 @@
 			"types": "./vite.d.ts",
 			"import": "./vite.js",
 			"require": "./vite.cjs"
+		},
+		"./modules": {
+			"types": "./modules.d.ts",
+			"import": "./modules.js",
+			"require": "./modules.cjs"
 		}
 	},
 	"dependencies": {
@@ -42,6 +47,7 @@
 		"esbuild-plugin-noexternal": "^0.1.4",
 		"magic-string": "^0.27.0",
 		"postcss": "^8.4.19",
+		"postcss-modules": "^6.0.0",
 		"postcss-nested": "^6.0.0",
 		"postcss-scss": "^4.0.6"
 	},
