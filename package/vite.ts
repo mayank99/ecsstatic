@@ -102,14 +102,10 @@ export function ecsstatic(options: Options = {}) {
 
 			const parsedAst = this.parse(code) as ESTree.Program;
 
-			const {
-				cssImportName,
-				scssImportName,
-				statements: ecsstaticImportStatements,
-			} = findEcsstaticImports(parsedAst);
-			if (ecsstaticImportStatements.length === 0) return;
+			const ecsstaticImports = findEcsstaticImports(parsedAst);
+			if (ecsstaticImports.size === 0) return;
 
-			const importNames = [cssImportName, scssImportName].filter(Boolean) as string[];
+			const importNames = [...ecsstaticImports.keys()];
 
 			const cssTemplateLiterals = findCssTaggedTemplateLiterals(parsedAst, importNames);
 			if (cssTemplateLiterals.length === 0) return;
@@ -119,7 +115,7 @@ export function ecsstatic(options: Options = {}) {
 
 			for (const node of cssTemplateLiterals) {
 				const { start, end, quasi, tag, _originalName } = node;
-				const isScss = tag.type === 'Identifier' && tag.name === scssImportName;
+				const isScss = tag.type === 'Identifier' && ecsstaticImports.get(tag.name)?.isScss;
 
 				// lazy populate inlinedVars until we need it, to delay problems that come with this mess
 				if (quasi.expressions.length && evaluateExpressions && !inlinedVars) {
@@ -151,7 +147,7 @@ export function ecsstatic(options: Options = {}) {
 			}
 
 			// remove ecsstatic imports, we don't need them anymore
-			ecsstaticImportStatements.forEach(({ start, end }) => magicCode.update(start, end, ''));
+			for (const { start, end } of ecsstaticImports.values()) magicCode.remove(start, end);
 
 			return {
 				code: magicCode.toString(),
@@ -204,28 +200,28 @@ async function processTemplateLiteral(rawTemplate: string, { inlinedVars = '' })
 
 /** parses ast and returns info about all css/scss ecsstatic imports */
 function findEcsstaticImports(ast: ESTree.Program) {
-	let cssImportName: string | undefined;
-	let scssImportName: string | undefined;
-	let statements: Array<{ start: number; end: number }> = [];
+	const statements = new Map<string, { isScss: boolean; start: number; end: number }>();
 
 	for (const node of ast.body.filter((node) => node.type === 'ImportDeclaration')) {
-		if (node.type === 'ImportDeclaration' && node.source.value === '@acab/ecsstatic') {
+		if (
+			node.type === 'ImportDeclaration' &&
+			node.source.value?.toString().startsWith('@acab/ecsstatic')
+		) {
 			const { start, end } = node;
-			if (node.specifiers.some(({ imported }: any) => ['css', 'scss'].includes(imported.name))) {
-				statements.push({ start, end });
-			}
 			node.specifiers.forEach((specifier) => {
-				if (specifier.type === 'ImportSpecifier' && specifier.imported.name === 'css') {
-					cssImportName = specifier.local.name;
-				}
-				if (specifier.type === 'ImportSpecifier' && specifier.imported.name === 'scss') {
-					scssImportName = specifier.local.name;
+				if (
+					specifier.type === 'ImportSpecifier' &&
+					['css', 'scss'].includes(specifier.imported.name)
+				) {
+					const tagName = specifier.local.name;
+					const isScss = specifier.imported.name === 'scss';
+					statements.set(tagName, { isScss, start, end });
 				}
 			});
 		}
 	}
 
-	return { cssImportName, scssImportName, statements };
+	return statements;
 }
 
 /**
