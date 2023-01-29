@@ -1,0 +1,21 @@
+{
+	"name": "demo-astro-solid",
+	"type": "module",
+	"version": "0.0.1",
+	"private": true,
+	"scripts": {
+		"dev": "astro dev",
+		"start": "astro dev",
+		"build": "astro build",
+		"preview": "astro preview",
+		"astro": "astro"
+	},
+	"dependencies": {
+		"@acab/ecsstatic": "*",
+		"@astrojs/solid-js": "2",
+		"astro": "2",
+		"clsx": "^1.2.1",
+		"open-props": "^1.5.5",
+		"solid-js": "^1.6.9"
+	}
+}

@@ -1,0 +1,13 @@
+{
+	"extends": "astro/tsconfigs/base",
+	"compilerOptions": {
+		"jsx": "preserve",
+		"jsxImportSource": "solid-js",
+		"plugins": [
+			{
+				"name": "@styled/typescript-styled-plugin",
+				"validate": false
+			}
+		]
+	}
+}
