@@ -86,10 +86,12 @@ export function ecsstatic(options: Options = {}) {
 			}
 		},
 
-		async transform(code, id) {
-			[id] = id.split('?'); // remove ?extra-shit from the end
+		async transform(code, _id) {
+			const [id, params] = _id.split('?');
 			if (/node_modules/.test(id)) return;
-			if (!/\.[cm]?[jt]sx?$/.test(id)) return;
+
+			// process .jsx/.tsx and also .astro files without params
+			if (!/\.[cm]?[jt]sx?$/.test(id) && !(/\.astro$/.test(id) && !params)) return;
 
 			const parsedAst = this.parse(code) as ESTree.Program;
 
@@ -121,7 +123,7 @@ export function ecsstatic(options: Options = {}) {
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
-				const cssFilename = `${className}.acab.${extension}`.toLowerCase();
+				const cssFilename = `${className.split('🎈-')[1]}.acab.${extension}`.toLowerCase();
 				magicCode.append(`import "./${cssFilename}";\n`);
 				const fullCssPath = normalizePath(path.join(path.dirname(id), cssFilename));
 				cssList.set(fullCssPath, css);
