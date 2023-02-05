@@ -8,7 +8,13 @@ The predefinite CSS-in-JS library for Vite.
 - suppports nesting selectors and at-rules, including `@container`, and `@layer`.
 - supports sass itself!
 
-Try it on [stackblitz](https://stackblitz.com/edit/vitejs-vite-jesvnk?file=src%2FApp.tsx,src%2FLogo.tsx,src%2FButton.tsx&terminal=dev).
+Try one of the starter templates on stackblitz:
+
+- [`vite` + `preact`](https://stackblitz.com/github/mayank99/ecsstatic/tree/main/demos/vite-preact?file=src%2FApp.tsx)
+- [`vite` + `react`](https://stackblitz.com/github/mayank99/ecsstatic/tree/main/demos/vite-react?file=src%2FApp.tsx)
+- [`vite` + `solid`](https://stackblitz.com/github/mayank99/ecsstatic/tree/main/demos/vite-solid?file=src%2FApp.tsx)
+- [`astro` + `react`](https://stackblitz.com/github/mayank99/ecsstatic/tree/main/demos/astro-react?file=src%2FApp.tsx)
+- [`astro` + `solid`](https://stackblitz.com/github/mayank99/ecsstatic/tree/main/demos/astro-solid?file=src%2FApp.tsx)
 
 Also check out the landing page: [ecsstatic.dev](https://ecsstatic.dev).
 
