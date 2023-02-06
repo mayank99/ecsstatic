@@ -62,14 +62,6 @@ export function ecsstatic(options: Options = {}) {
 			viteConfigObj = _config;
 		},
 
-		buildStart() {
-			cssList.clear();
-		},
-
-		buildEnd() {
-			cssList.clear();
-		},
-
 		resolveId(id, importer) {
 			if (!importer) return;
 
