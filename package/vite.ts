@@ -11,6 +11,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import type * as ESTree from 'estree';
 import type { Plugin, ResolvedConfig } from 'vite';
+import type * as Postcss from 'postcss';
 
 import hash from './hash.js';
 
@@ -36,6 +37,16 @@ type Options = {
 	 * @default '🎈'
 	 */
 	classNamePrefix?: string;
+	/**
+	 * When enabled, the final output of the prod bundle will contain atomic classes, which can result in a
+	 * smaller CSS file, at the cost of bloating the markup with lots of classes. This tradeoff can be worth it
+	 * for large sites where the size of the CSS would be a concern.
+	 *
+	 * @experimental
+	 *
+	 * @default false
+	 */
+	marqueeMode?: boolean;
 };
 
 /**
@@ -49,7 +60,7 @@ type Options = {
  * });
  */
 export function ecsstatic(options: Options = {}) {
-	const { resolvePackages = [], classNamePrefix = '🎈' } = options;
+	const { resolvePackages = [], classNamePrefix = '🎈', marqueeMode = false } = options;
 
 	const cssList = new Map<string, string>();
 	let viteConfigObj: ResolvedConfig;
@@ -124,7 +135,12 @@ export function ecsstatic(options: Options = {}) {
 				const templateContents = quasi.expressions.length
 					? await processTemplateLiteral(rawTemplate, { inlinedVars })
 					: rawTemplate.slice(1, rawTemplate.length - 2);
-				const [css, className] = processCss(templateContents, { isScss, classNamePrefix });
+				const [css, className] = processCss(templateContents, {
+					isScss,
+					classNamePrefix,
+					isDev: viteConfigObj.command === 'serve',
+					marqueeMode,
+				});
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
@@ -159,7 +175,10 @@ export function ecsstatic(options: Options = {}) {
  * processes template strings using postcss and
  * returns it along with a hashed classname based on the string contents.
  */
-function processCss(templateContents: string, { isScss = false, classNamePrefix = '🎈' }) {
+function processCss(
+	templateContents: string,
+	{ isScss = false, classNamePrefix = '🎈', isDev = false, marqueeMode = false }
+) {
 	const isImportOrUse = (line: string) =>
 		line.trim().startsWith('@import') || line.trim().startsWith('@use');
 
@@ -182,7 +201,55 @@ function processCss(templateContents: string, { isScss = false, classNamePrefix 
 	const options = isScss ? { parser: postcssScss } : {};
 	const { css } = postcss(plugins).process(unprocessedCss, options);
 
-	return [css, className];
+	if (isDev || !marqueeMode) {
+		return [css, className] as const;
+	}
+
+	return generateMarquee(css, { originalClass: className });
+}
+
+/** takes regular css and atomizes it into one class per declaration using postcss */
+function generateMarquee(code: string, { originalClass = '' }) {
+	code = code.replaceAll(originalClass, '__🎈__');
+	let css = '';
+	let classNames = originalClass;
+
+	postcss([
+		Object.assign(
+			() =>
+				({
+					postcssPlugin: 'postcss-shit',
+					Declaration(decl) {
+						if (decl.parent?.type === 'rule') {
+							const parent = decl.parent as Postcss.Rule;
+							let rule = `${parent?.selector} {\n${decl.prop}: ${decl.value}${
+								decl.important ? ' !important;' : ';'
+							}\n}\n`;
+
+							const unwrapParentRules = (_rule: Postcss.Rule | Postcss.AtRule) => {
+								if (_rule?.parent?.type !== 'root') {
+									const _parent = _rule.parent as Postcss.AtRule;
+									rule = `@${_parent?.name} ${_parent?.params} {\n${rule}\n}\n`;
+									unwrapParentRules(_parent);
+								}
+							};
+							unwrapParentRules(parent);
+
+							let thisClass = hash(rule);
+							if (!Number.isNaN(Number(thisClass[0]))) thisClass = `m${thisClass}`;
+							classNames += ` ${thisClass}`;
+
+							rule = rule.replaceAll('__🎈__', thisClass);
+
+							css += rule;
+						}
+					},
+				} as Postcss.AcceptedPlugin),
+			{ postcss: true }
+		)(),
+	]).process(code).css;
+
+	return [css, classNames] as const;
 }
 
 /** resolves all expressions in the template literal and returns a plain string */
