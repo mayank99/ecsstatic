@@ -210,18 +210,20 @@ function processCss(
 
 /** atomizes regular css into one class per declaration using postcss. returns the css and a list of classes */
 function generateMarquee(code: string, { originalClass = '', isScss = false }) {
-	code = code.replaceAll(originalClass, '__🎈__');
-	let classNames = originalClass;
+	const MARKER = '__🎈__'; // we'll use this constant value so that we always get the same hashed class for same declarations
+
+	code = code.replaceAll(originalClass, MARKER);
+	let classNames = [originalClass];
 
 	const { css } = postcss([
 		Object.assign(
 			() =>
 				({
-					postcssPlugin: 'postcss-shit',
+					postcssPlugin: 'postcss-marquee',
 					Declaration(decl) {
 						if (decl.parent?.type === 'rule') {
 							const parent = decl.parent as Postcss.Rule;
-							if (!parent?.selector?.includes('__🎈__')) return;
+							if (!parent?.selector?.includes(MARKER)) return;
 
 							let rule = `${parent?.selector} {\n${decl.prop}: ${decl.value}${
 								decl.important ? ' !important;' : ';'
@@ -242,10 +244,9 @@ function generateMarquee(code: string, { originalClass = '', isScss = false }) {
 
 							let thisClass = hash(rule);
 							if (!Number.isNaN(Number(thisClass[0]))) thisClass = `m${thisClass}`;
-							classNames += ` ${thisClass}`;
+							classNames.push(thisClass);
 
-							rule = rule.replaceAll('__🎈__', thisClass);
-
+							rule = rule.replaceAll(MARKER, thisClass);
 							decl.remove();
 							root!.append(rule);
 						}
@@ -255,7 +256,7 @@ function generateMarquee(code: string, { originalClass = '', isScss = false }) {
 		)(),
 	]).process(code, isScss ? { parser: postcssScss } : {});
 
-	return [css, classNames] as const;
+	return [css, classNames.join(' ')] as const;
 }
 
 /** resolves all expressions in the template literal and returns a plain string */
