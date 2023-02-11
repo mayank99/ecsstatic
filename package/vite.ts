@@ -11,6 +11,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import type * as ESTree from 'estree';
 import type { Plugin, ResolvedConfig } from 'vite';
+import type * as Postcss from 'postcss';
 
 import hash from './hash.js';
 
@@ -36,6 +37,18 @@ type Options = {
 	 * @default '🎈'
 	 */
 	classNamePrefix?: string;
+	/**
+	 * When enabled, the final output of the prod bundle will contain atomic classes, where one class maps to one declaration.
+	 * This can result in a smaller CSS file, at the cost of bloating the markup with lots of classes. This tradeoff can be worth
+	 * it for large sites where the size of the CSS would be a concern.
+	 *
+	 * By default, these classes will be prefixed with 🤡. A different prefix can be specified by passing an object.
+	 *
+	 * @experimental
+	 *
+	 * @default false
+	 */
+	marqueeMode?: boolean | { prefix?: string };
 };
 
 /**
@@ -49,7 +62,7 @@ type Options = {
  * });
  */
 export function ecsstatic(options: Options = {}) {
-	const { resolvePackages = [], classNamePrefix = '🎈' } = options;
+	const { resolvePackages = [], classNamePrefix = '🎈', marqueeMode = false } = options;
 
 	const cssList = new Map<string, string>();
 	let viteConfigObj: ResolvedConfig;
@@ -124,7 +137,12 @@ export function ecsstatic(options: Options = {}) {
 				const templateContents = quasi.expressions.length
 					? await processTemplateLiteral(rawTemplate, { inlinedVars })
 					: rawTemplate.slice(1, rawTemplate.length - 2);
-				const [css, className] = processCss(templateContents, { isScss, classNamePrefix });
+				const [css, className] = processCss(templateContents, {
+					isScss,
+					classNamePrefix,
+					isDev: viteConfigObj.command === 'serve',
+					marqueeMode,
+				});
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
@@ -159,7 +177,17 @@ export function ecsstatic(options: Options = {}) {
  * processes template strings using postcss and
  * returns it along with a hashed classname based on the string contents.
  */
-function processCss(templateContents: string, { isScss = false, classNamePrefix = '🎈' }) {
+function processCss(
+	templateContents: string,
+	opts: {
+		isScss?: boolean;
+		classNamePrefix?: string;
+		isDev: boolean;
+		marqueeMode: Options['marqueeMode'];
+	}
+) {
+	const { isScss = false, classNamePrefix = '🎈', isDev = false, marqueeMode = false } = opts;
+
 	const isImportOrUse = (line: string) =>
 		line.trim().startsWith('@import') || line.trim().startsWith('@use');
 
@@ -182,7 +210,12 @@ function processCss(templateContents: string, { isScss = false, classNamePrefix 
 	const options = isScss ? { parser: postcssScss } : {};
 	const { css } = postcss(plugins).process(unprocessedCss, options);
 
-	return [css, className];
+	if (isDev || !marqueeMode) {
+		return [css, className] as const;
+	}
+
+	const prefix = typeof marqueeMode === 'object' ? marqueeMode.prefix : '🤡';
+	return generateMarquee(css, { originalClass: className, isScss, prefix });
 }
 
 /** resolves all expressions in the template literal and returns a plain string */
@@ -408,3 +441,53 @@ const autoprefixerOptions = {
 		'last 2 iOS major versions and >0.5%',
 	],
 };
+
+/** atomizes regular css into one class per declaration using postcss. returns the css and a list of classes */
+function generateMarquee(code: string, { originalClass = '', isScss = false, prefix = '🤡' }) {
+	const MARKER = '__🎈__'; // we'll use this constant value so that we always get the same hashed class for same declarations
+
+	code = code.replaceAll(originalClass, MARKER);
+	let classNames = [originalClass];
+
+	const { css } = postcss([
+		Object.assign(
+			() =>
+				({
+					postcssPlugin: 'postcss-marquee',
+					Declaration(decl) {
+						if (decl.parent?.type === 'rule') {
+							const parent = decl.parent as Postcss.Rule;
+							if (!parent?.selector?.includes(MARKER)) return;
+
+							let rule = `${parent?.selector} {\n${decl.prop}: ${decl.value}${
+								decl.important ? ' !important;' : ';'
+							}\n}\n`;
+
+							let root: Postcss.Root;
+							const unwrapParentRules = (_rule: Postcss.Rule | Postcss.AtRule) => {
+								if (_rule?.parent?.type === 'root') {
+									root = _rule.parent as any;
+								} else if (_rule?.parent?.type !== 'root') {
+									const _parent = _rule.parent as Postcss.AtRule;
+									if (!_parent) return;
+									rule = `@${_parent?.name} ${_parent?.params} {\n${rule}\n}\n`;
+									unwrapParentRules(_parent);
+								}
+							};
+							unwrapParentRules(parent);
+
+							let atomicClass = `${prefix}-${hash(rule)}`;
+							classNames.push(atomicClass);
+
+							rule = rule.replaceAll(MARKER, atomicClass);
+							decl.remove();
+							root!.append(rule);
+						}
+					},
+				} as Postcss.AcceptedPlugin),
+			{ postcss: true }
+		)(),
+	]).process(code, isScss ? { parser: postcssScss } : {});
+
+	return [css, classNames.join(' ')] as const;
+}
