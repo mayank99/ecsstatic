@@ -218,56 +218,6 @@ function processCss(
 	return generateMarquee(css, { originalClass: className, isScss, prefix });
 }
 
-/** atomizes regular css into one class per declaration using postcss. returns the css and a list of classes */
-function generateMarquee(code: string, { originalClass = '', isScss = false, prefix = '🤡' }) {
-	const MARKER = '__🎈__'; // we'll use this constant value so that we always get the same hashed class for same declarations
-
-	code = code.replaceAll(originalClass, MARKER);
-	let classNames = [originalClass];
-
-	const { css } = postcss([
-		Object.assign(
-			() =>
-				({
-					postcssPlugin: 'postcss-marquee',
-					Declaration(decl) {
-						if (decl.parent?.type === 'rule') {
-							const parent = decl.parent as Postcss.Rule;
-							if (!parent?.selector?.includes(MARKER)) return;
-
-							let rule = `${parent?.selector} {\n${decl.prop}: ${decl.value}${
-								decl.important ? ' !important;' : ';'
-							}\n}\n`;
-
-							let root: Postcss.Root;
-							const unwrapParentRules = (_rule: Postcss.Rule | Postcss.AtRule) => {
-								if (_rule?.parent?.type === 'root') {
-									root = _rule.parent as any;
-								} else if (_rule?.parent?.type !== 'root') {
-									const _parent = _rule.parent as Postcss.AtRule;
-									if (!_parent) return;
-									rule = `@${_parent?.name} ${_parent?.params} {\n${rule}\n}\n`;
-									unwrapParentRules(_parent);
-								}
-							};
-							unwrapParentRules(parent);
-
-							let atomicClass = `${prefix}-${hash(rule)}`;
-							classNames.push(atomicClass);
-
-							rule = rule.replaceAll(MARKER, atomicClass);
-							decl.remove();
-							root!.append(rule);
-						}
-					},
-				} as Postcss.AcceptedPlugin),
-			{ postcss: true }
-		)(),
-	]).process(code, isScss ? { parser: postcssScss } : {});
-
-	return [css, classNames.join(' ')] as const;
-}
-
 /** resolves all expressions in the template literal and returns a plain string */
 async function processTemplateLiteral(rawTemplate: string, { inlinedVars = '' }) {
 	try {
@@ -491,3 +441,53 @@ const autoprefixerOptions = {
 		'last 2 iOS major versions and >0.5%',
 	],
 };
+
+/** atomizes regular css into one class per declaration using postcss. returns the css and a list of classes */
+function generateMarquee(code: string, { originalClass = '', isScss = false, prefix = '🤡' }) {
+	const MARKER = '__🎈__'; // we'll use this constant value so that we always get the same hashed class for same declarations
+
+	code = code.replaceAll(originalClass, MARKER);
+	let classNames = [originalClass];
+
+	const { css } = postcss([
+		Object.assign(
+			() =>
+				({
+					postcssPlugin: 'postcss-marquee',
+					Declaration(decl) {
+						if (decl.parent?.type === 'rule') {
+							const parent = decl.parent as Postcss.Rule;
+							if (!parent?.selector?.includes(MARKER)) return;
+
+							let rule = `${parent?.selector} {\n${decl.prop}: ${decl.value}${
+								decl.important ? ' !important;' : ';'
+							}\n}\n`;
+
+							let root: Postcss.Root;
+							const unwrapParentRules = (_rule: Postcss.Rule | Postcss.AtRule) => {
+								if (_rule?.parent?.type === 'root') {
+									root = _rule.parent as any;
+								} else if (_rule?.parent?.type !== 'root') {
+									const _parent = _rule.parent as Postcss.AtRule;
+									if (!_parent) return;
+									rule = `@${_parent?.name} ${_parent?.params} {\n${rule}\n}\n`;
+									unwrapParentRules(_parent);
+								}
+							};
+							unwrapParentRules(parent);
+
+							let atomicClass = `${prefix}-${hash(rule)}`;
+							classNames.push(atomicClass);
+
+							rule = rule.replaceAll(MARKER, atomicClass);
+							decl.remove();
+							root!.append(rule);
+						}
+					},
+				} as Postcss.AcceptedPlugin),
+			{ postcss: true }
+		)(),
+	]).process(code, isScss ? { parser: postcssScss } : {});
+
+	return [css, classNames.join(' ')] as const;
+}
