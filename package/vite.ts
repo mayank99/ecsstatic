@@ -38,11 +38,11 @@ type Options = {
 	 */
 	classNamePrefix?: string;
 	/**
-	 * When enabled, the final output of the prod bundle will contain atomic classes, which can result in a
-	 * smaller CSS file, at the cost of bloating the markup with lots of classes. This tradeoff can be worth it
-	 * for large sites where the size of the CSS would be a concern.
+	 * When enabled, the final output of the prod bundle will contain atomic classes, where one class maps to one declaration.
+	 * This can result in a smaller CSS file, at the cost of bloating the markup with lots of classes. This tradeoff can be worth
+	 * it for large sites where the size of the CSS would be a concern.
 	 *
-	 * By default, these classes will be prefixed with 🤡. A different prefix can be provided by passing an object.
+	 * By default, these classes will be prefixed with 🤡. A different prefix can be specified by passing an object.
 	 *
 	 * @experimental
 	 *

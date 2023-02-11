@@ -102,6 +102,16 @@ For syntax highlighting and intellisense, use the [vscode-styled-components](htt
 import { scss as css } from '@acab/ecsstatic';
 ```
 
+## Atomic classes
+
+There is an experimental flag `marqueeMode`. When enabled, the prod build output will contain atomic classes, where one class maps to one declaration. This can potentially result in a smaller CSS file, at the cost of bloating the markup with lots of classes. This tradeoff can be worth it for large sites where the size of the CSS would be a concern.
+
+```js
+export default defineConfig({
+  plugins: [ecsstatic({ marqueeMode: true })],
+});
+```
+
 ## Prior art
 
 Huge shoutout to the previous libraries that came before this; ecsstatic would not have been possible without them paving the way.
