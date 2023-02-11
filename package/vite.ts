@@ -224,8 +224,9 @@ async function processTemplateLiteral(rawTemplate: string, { inlinedVars = '' })
 		const processedTemplate = (await evalWithEsbuild(rawTemplate, inlinedVars)) as string;
 		return processedTemplate;
 	} catch (err) {
-		console.error('Unable to resolve expression in template literal');
-		throw err;
+		const e = new Error('Unable to resolve expression in template literal', { cause: err });
+		e.stack = e.stack?.split('\n').slice(1, 3).join('\n');
+		throw e;
 	}
 }
 
@@ -276,11 +277,23 @@ async function evalWithEsbuild(expression: string, allVarDeclarations = '') {
 	const args = ['--eval', code, '--input-type=module'];
 	try {
 		const { stdout, stderr } = await promisify(execFile)('node', args);
-		if (stderr) throw 'fuck!';
+		if (stderr) throw stderr;
 
 		const finalValue = stdout.substring(stdout.indexOf(logIndicator) + logIndicator.length);
 		return finalValue;
-	} catch {
+	} catch (err) {
+		if (err instanceof Error) {
+			const e = new Error(
+				err.message.substring(err.message.lastIndexOf(args.at(-1)!) + args.at(-1)!.length)
+			);
+			e.stack = e.stack
+				?.split('\n')
+				.slice(2, 7)
+				.filter((line) => Boolean(line.trim()))
+				.join('\n');
+
+			throw e;
+		}
 		throw 'fuck!';
 	}
 }
