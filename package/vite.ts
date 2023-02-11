@@ -42,11 +42,13 @@ type Options = {
 	 * smaller CSS file, at the cost of bloating the markup with lots of classes. This tradeoff can be worth it
 	 * for large sites where the size of the CSS would be a concern.
 	 *
+	 * By default, these classes will be prefixed with 🤡. A different prefix can be provided by passing an object.
+	 *
 	 * @experimental
 	 *
 	 * @default false
 	 */
-	marqueeMode?: boolean;
+	marqueeMode?: boolean | { prefix?: string };
 };
 
 /**
@@ -177,8 +179,15 @@ export function ecsstatic(options: Options = {}) {
  */
 function processCss(
 	templateContents: string,
-	{ isScss = false, classNamePrefix = '🎈', isDev = false, marqueeMode = false }
+	opts: {
+		isScss?: boolean;
+		classNamePrefix?: string;
+		isDev: boolean;
+		marqueeMode: Options['marqueeMode'];
+	}
 ) {
+	const { isScss = false, classNamePrefix = '🎈', isDev = false, marqueeMode = false } = opts;
+
 	const isImportOrUse = (line: string) =>
 		line.trim().startsWith('@import') || line.trim().startsWith('@use');
 
@@ -205,11 +214,12 @@ function processCss(
 		return [css, className] as const;
 	}
 
-	return generateMarquee(css, { originalClass: className, isScss });
+	const prefix = typeof marqueeMode === 'object' ? marqueeMode.prefix : '🤡';
+	return generateMarquee(css, { originalClass: className, isScss, prefix });
 }
 
 /** atomizes regular css into one class per declaration using postcss. returns the css and a list of classes */
-function generateMarquee(code: string, { originalClass = '', isScss = false }) {
+function generateMarquee(code: string, { originalClass = '', isScss = false, prefix = '🤡' }) {
 	const MARKER = '__🎈__'; // we'll use this constant value so that we always get the same hashed class for same declarations
 
 	code = code.replaceAll(originalClass, MARKER);
@@ -242,11 +252,10 @@ function generateMarquee(code: string, { originalClass = '', isScss = false }) {
 							};
 							unwrapParentRules(parent);
 
-							let thisClass = hash(rule);
-							if (!Number.isNaN(Number(thisClass[0]))) thisClass = `m${thisClass}`;
-							classNames.push(thisClass);
+							let atomicClass = `${prefix}-${hash(rule)}`;
+							classNames.push(atomicClass);
 
-							rule = rule.replaceAll(MARKER, thisClass);
+							rule = rule.replaceAll(MARKER, atomicClass);
 							decl.remove();
 							root!.append(rule);
 						}
