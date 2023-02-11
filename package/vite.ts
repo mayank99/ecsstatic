@@ -205,16 +205,15 @@ function processCss(
 		return [css, className] as const;
 	}
 
-	return generateMarquee(css, { originalClass: className });
+	return generateMarquee(css, { originalClass: className, isScss });
 }
 
-/** takes regular css and atomizes it into one class per declaration using postcss */
-function generateMarquee(code: string, { originalClass = '' }) {
+/** atomizes regular css into one class per declaration using postcss. returns the css and a list of classes */
+function generateMarquee(code: string, { originalClass = '', isScss = false }) {
 	code = code.replaceAll(originalClass, '__🎈__');
-	let css = '';
 	let classNames = originalClass;
 
-	postcss([
+	const { css } = postcss([
 		Object.assign(
 			() =>
 				({
@@ -222,13 +221,19 @@ function generateMarquee(code: string, { originalClass = '' }) {
 					Declaration(decl) {
 						if (decl.parent?.type === 'rule') {
 							const parent = decl.parent as Postcss.Rule;
+							if (!parent?.selector?.includes('__🎈__')) return;
+
 							let rule = `${parent?.selector} {\n${decl.prop}: ${decl.value}${
 								decl.important ? ' !important;' : ';'
 							}\n}\n`;
 
+							let root: Postcss.Root;
 							const unwrapParentRules = (_rule: Postcss.Rule | Postcss.AtRule) => {
-								if (_rule?.parent?.type !== 'root') {
+								if (_rule?.parent?.type === 'root') {
+									root = _rule.parent as any;
+								} else if (_rule?.parent?.type !== 'root') {
 									const _parent = _rule.parent as Postcss.AtRule;
+									if (!_parent) return;
 									rule = `@${_parent?.name} ${_parent?.params} {\n${rule}\n}\n`;
 									unwrapParentRules(_parent);
 								}
@@ -241,13 +246,14 @@ function generateMarquee(code: string, { originalClass = '' }) {
 
 							rule = rule.replaceAll('__🎈__', thisClass);
 
-							css += rule;
+							decl.remove();
+							root!.append(rule);
 						}
 					},
 				} as Postcss.AcceptedPlugin),
 			{ postcss: true }
 		)(),
-	]).process(code).css;
+	]).process(code, isScss ? { parser: postcssScss } : {});
 
 	return [css, classNames] as const;
 }
