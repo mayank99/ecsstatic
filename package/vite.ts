@@ -3,7 +3,7 @@ import externalizeAllPackagesExcept from 'esbuild-plugin-noexternal';
 import MagicString from 'magic-string';
 import path from 'path';
 import postcss from 'postcss';
-import postcssNested from 'postcss-nested';
+import postcssNesting from 'postcss-nesting';
 import postcssScss from 'postcss-scss';
 import { ancestor as walk } from 'acorn-walk';
 import autoprefixer from 'autoprefixer';
@@ -205,7 +205,7 @@ function processCss(
 	const unprocessedCss = `${importsAndUses}\n.${className}{${codeWithoutImportsAndUses}}`;
 
 	const plugins = !isScss
-		? [postcssNested(), autoprefixer(autoprefixerOptions)]
+		? [postcssNesting(), autoprefixer(autoprefixerOptions)]
 		: [autoprefixer(autoprefixerOptions)];
 	const options = isScss ? { parser: postcssScss } : {};
 	const { css } = postcss(plugins).process(unprocessedCss, options);
