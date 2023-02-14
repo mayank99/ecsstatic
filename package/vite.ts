@@ -224,8 +224,9 @@ async function processTemplateLiteral(rawTemplate: string, { inlinedVars = '' })
 		const processedTemplate = (await evalWithEsbuild(rawTemplate, inlinedVars)) as string;
 		return processedTemplate;
 	} catch (err) {
-		const e = new Error('Unable to resolve expression in template literal', { cause: err });
-		e.stack = e.stack?.split('\n').slice(1, 3).join('\n');
+		const e = new Error('Unable to resolve expression in template literal');
+		e.stack = e.stack?.split('\n').slice(1, 3).join('\n') ?? '';
+		e.stack += err instanceof Error ? '…\n\n' + err?.stack : '';
 		throw e;
 	}
 }
