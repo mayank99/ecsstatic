@@ -136,7 +136,7 @@ importers:
       acorn-walk: ^8.2.0
       autoprefixer: ^10.4.13
       esbuild: ^0.17.5
-      esbuild-plugin-noexternal: ^0.1.4
+      esbuild-plugin-noexternal: ^0.1.5
       magic-string: ^0.27.0
       postcss: ^8.4.19
       postcss-nesting: ^11.1.0
@@ -147,7 +147,7 @@ importers:
       acorn-walk: 8.2.0
       autoprefixer: 10.4.13_postcss@8.4.21
       esbuild: 0.17.5
-      esbuild-plugin-noexternal: 0.1.4
+      esbuild-plugin-noexternal: 0.1.5
       magic-string: 0.27.0
       postcss: 8.4.21
       postcss-nesting: 11.1.0_postcss@8.4.21
@@ -2130,8 +2130,8 @@ packages:
     dev: true
     optional: true
 
-  /esbuild-plugin-noexternal/0.1.4:
-    resolution: {integrity: sha512-NJiBrTr7O4wlnCIZ/zdBd7QfmHpbC20kGhPBYsd4Az5uG1rwXZXWgPPaWbmPMJVM/5OOHVwNLgEmCUbX1Afn6A==}
+  /esbuild-plugin-noexternal/0.1.5:
+    resolution: {integrity: sha512-axOhobR9xHAAnkjDejZMezgwyg/A5YmXlIKZ1+iPvzGKhu9NjQA8BOA/+oG6dJWaGXalDpFiaDq/cFwLSn1pOg==}
     dev: false
 
   /esbuild-sunos-64/0.15.18:
