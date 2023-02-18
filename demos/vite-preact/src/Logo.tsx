@@ -31,7 +31,7 @@ const h1 = css`
 	line-height: 1;
 	margin-block: 1rem 2rem;
 
-	span {
+	> span {
 		color: ${accent};
 	}
 `;
