@@ -4,6 +4,7 @@ import MagicString from 'magic-string';
 import path from 'path';
 import postcss from 'postcss';
 import postcssNesting from 'postcss-nesting';
+import postcssNested from 'postcss-nested';
 import postcssScss from 'postcss-scss';
 import { ancestor as walk } from 'acorn-walk';
 import autoprefixer from 'autoprefixer';
@@ -205,7 +206,7 @@ function processCss(
 	const unprocessedCss = `${importsAndUses}\n.${className}{${codeWithoutImportsAndUses}}`;
 
 	const plugins = !isScss
-		? [postcssNesting(), autoprefixer(autoprefixerOptions)]
+		? [postcssNesting(), postcssNested(), autoprefixer(autoprefixerOptions)]
 		: [autoprefixer(autoprefixerOptions)];
 	const options = isScss ? { parser: postcssScss } : {};
 	const { css } = postcss(plugins).process(unprocessedCss, options);
