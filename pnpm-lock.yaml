@@ -139,7 +139,7 @@ importers:
       esbuild-plugin-noexternal: ^0.1.5
       magic-string: ^0.27.0
       postcss: ^8.4.19
-      postcss-nested: ^6.0.0
+      postcss-nested: ^6.0.1
       postcss-nesting: ^11.2.0
       postcss-scss: ^4.0.6
       tsup: ^6.5.0
@@ -151,7 +151,7 @@ importers:
       esbuild-plugin-noexternal: 0.1.5
       magic-string: 0.27.0
       postcss: 8.4.21
-      postcss-nested: 6.0.0_postcss@8.4.21
+      postcss-nested: 6.0.1_postcss@8.4.21
       postcss-nesting: 11.2.1_postcss@8.4.21
       postcss-scss: 4.0.6_postcss@8.4.21
     devDependencies:
@@ -3568,14 +3568,14 @@ packages:
       yaml: 1.10.2
     dev: true
 
-  /postcss-nested/6.0.0_postcss@8.4.21:
-    resolution: {integrity: sha512-0DkamqrPcmkBDsLn+vQDIrtkSbNkv5AD/M322ySo9kqFkCIYklym2xEmWkwo+Y3/qZo34tzEPNUw4y7yMCdv5w==}
+  /postcss-nested/6.0.1_postcss@8.4.21:
+    resolution: {integrity: sha512-mEp4xPMi5bSWiMbsgoPfcP74lsWLHkQbZc3sY+jWYd65CUwXrUaTp0fmNpa01ZcETKlIgUdFN/MpS2xZtqL9dQ==}
     engines: {node: '>=12.0'}
     peerDependencies:
       postcss: ^8.2.14
     dependencies:
       postcss: 8.4.21
-      postcss-selector-parser: 6.0.10
+      postcss-selector-parser: 6.0.11
     dev: false
 
   /postcss-nesting/11.2.1_postcss@8.4.21:
@@ -3600,6 +3600,14 @@ packages:
 
   /postcss-selector-parser/6.0.10:
     resolution: {integrity: sha512-IQ7TZdoaqbT+LCpShg46jnZVlhWD2w6iQYAcYXfHARZ7X1t/UGhhceQDs5X0cGqKvYlHNOuv7Oa1xmb0oQuA3w==}
+    engines: {node: '>=4'}
+    dependencies:
+      cssesc: 3.0.0
+      util-deprecate: 1.0.2
+    dev: false
+
+  /postcss-selector-parser/6.0.11:
+    resolution: {integrity: sha512-zbARubNdogI9j7WY4nQJBiNqQf3sLS3wCP4WfOidu+p28LofJqDH1tcXypGrcmMHhDk2t9wGhCsYe/+szLTy1g==}
     engines: {node: '>=4'}
     dependencies:
       cssesc: 3.0.0

@@ -206,11 +206,7 @@ function processCss(
 	const unprocessedCss = `${importsAndUses}\n.${className}{${codeWithoutImportsAndUses}}`;
 
 	const plugins = !isScss
-		? [
-				postcssNesting(),
-				postcssNested({ bubble: ['@container', '@scope'] }),
-				autoprefixer(autoprefixerOptions),
-		  ]
+		? [postcssNesting(), postcssNested(), autoprefixer(autoprefixerOptions)]
 		: [autoprefixer(autoprefixerOptions)];
 	const options = isScss ? { parser: postcssScss } : {};
 	const { css } = postcss(plugins).process(unprocessedCss, options);
