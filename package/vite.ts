@@ -381,10 +381,10 @@ function findCssTaggedTemplateLiterals(ast: ESTree.Program, tagNames: string[]) 
  */
 function loadDummyEcsstatic({ classNamePrefix = '🎈' }) {
 	const hashStr = hash.toString();
-	const getHashFromTemplateStr = getHashFromTemplate.toString().replace('🎈', classNamePrefix);
-	const contents = `${hashStr}\n${getHashFromTemplateStr}\n
-	  export const css = getHashFromTemplate;
-	  export const scss = getHashFromTemplate;
+	const createTaggedCssFnStr = createTaggedCssFn.toString();
+	const contents = `${hashStr}\n${createTaggedCssFnStr}\n
+	  export const css = createTaggedCssFn('${classNamePrefix}');
+	  export const scss = createTaggedCssFn('${classNamePrefix}');
 	`;
 
 	return <esbuild.Plugin>{
@@ -422,20 +422,22 @@ function ignoreUnknownExtensions() {
 }
 
 /**
- * this is like an actual "runtime" version of the css/scss functions.
+ * this will return a "runtime" version of the css/scss functions.
  *
  * we will use it to generate hashed classes for use inside expressions.
  * these classes will be wrapped with `:where()` to keep specficity flat.
  */
-function getHashFromTemplate(templates: TemplateStringsArray, ...args: Array<string | number>) {
-	let str = '';
-	templates.forEach((template, index) => {
-		str += template;
-		if (index < args.length - 1) {
-			str += args[index];
-		}
-	});
-	return `:where(.🎈-${hash(str.trim())})`;
+function createTaggedCssFn(classNamePrefix = '🎈') {
+	return (templates: TemplateStringsArray, ...args: Array<string | number>) => {
+		let str = '';
+		templates.forEach((template, index) => {
+			str += template;
+			if (index < args.length) {
+				str += args[index];
+			}
+		});
+		return `:where(.${classNamePrefix}-${hash(str.trim())})`;
+	};
 }
 
 function normalizePath(original: string) {
