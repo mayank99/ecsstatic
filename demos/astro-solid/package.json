@@ -12,10 +12,10 @@
 	},
 	"dependencies": {
 		"@acab/ecsstatic": "*",
-		"@astrojs/solid-js": "2",
-		"astro": "2",
+		"@astrojs/solid-js": "^2.2.0",
+		"astro": "^2.5.0",
 		"clsx": "^1.2.1",
-		"open-props": "^1.5.5",
-		"solid-js": "^1.6.9"
+		"open-props": "^1.5.8",
+		"solid-js": "^1.7.5"
 	}
 }

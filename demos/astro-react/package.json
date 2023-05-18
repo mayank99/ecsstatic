@@ -12,13 +12,13 @@
 	},
 	"dependencies": {
 		"@acab/ecsstatic": "*",
-		"@astrojs/react": "2",
-		"@types/react": "^18.0.21",
-		"@types/react-dom": "^18.0.6",
-		"astro": "2",
+		"@astrojs/react": "^2.2.0",
+		"@types/react": "^18.2.0",
+		"@types/react-dom": "^18.2.0",
+		"astro": "^2.5.0",
 		"clsx": "^1.2.1",
-		"open-props": "^1.5.5",
-		"react": "^18.0.0",
-		"react-dom": "^18.0.0"
+		"open-props": "^1.5.8",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
 	}
 }
