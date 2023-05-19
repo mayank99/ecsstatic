@@ -11,7 +11,7 @@ import autoprefixer from 'autoprefixer';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import type * as ESTree from 'estree';
-import type { Plugin, ResolvedConfig } from 'vite';
+import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite';
 import type * as Postcss from 'postcss';
 
 import hash from './hash.js';
@@ -67,27 +67,24 @@ export function ecsstatic(options: Options = {}) {
 
 	const cssList = new Map<string, string>();
 	let viteConfigObj: ResolvedConfig;
+	let viteServer: ViteDevServer;
 
 	return <Plugin>{
 		name: 'ecsstatic',
 		enforce: 'post',
 
-		configResolved(_config: ResolvedConfig) {
+		configResolved(_config) {
 			viteConfigObj = _config;
+		},
+
+		configureServer(_server) {
+			viteServer = _server;
 		},
 
 		resolveId(id, importer) {
 			if (!importer) return;
 
-			if (id.endsWith('css')) {
-				// relative to absolute
-				if (id.startsWith('.')) id = normalizePath(path.join(path.dirname(importer), id));
-
-				if (!cssList.has(id)) {
-					// sometimes we need to resolve it based on the root
-					id = normalizePath(path.join(viteConfigObj.root, id.startsWith('/') ? id.slice(1) : id));
-				}
-
+			if (id.endsWith('css') && id.startsWith('__acab')) {
 				if (cssList.has(id)) {
 					return id;
 				}
@@ -122,6 +119,22 @@ export function ecsstatic(options: Options = {}) {
 			const magicCode = new MagicString(code);
 			let inlinedVars = '';
 
+			const cssFilenameHash = hash(normalizePath(id)).toLowerCase();
+			const cssFileNames = {
+				css: { name: `__acab:${cssFilenameHash}.css`, shouldImport: false },
+				scss: { name: `__acab:${cssFilenameHash}.scss`, shouldImport: false },
+			};
+
+			Object.values(cssFileNames).forEach(({ name }) => {
+				if (cssList.has(name)) {
+					cssList.delete(name);
+					viteServer?.moduleGraph.getModulesByFile(name)?.forEach((m) => {
+						viteServer.moduleGraph.invalidateModule(m);
+						m.lastHMRTimestamp = Date.now();
+					});
+				}
+			});
+
 			for (const node of cssTemplateLiterals) {
 				const { start, end, quasi, tag, _originalName } = node;
 				const isScss = tag.type === 'Identifier' && ecsstaticImports.get(tag.name)?.isScss;
@@ -149,13 +162,10 @@ export function ecsstatic(options: Options = {}) {
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
-				let cssFilename = !isGlobal
-					? `${className.split(`${classNamePrefix}-`)[1]}`
-					: hash(templateContents).replaceAll('-', '');
-				cssFilename = `${cssFilename}.acab.${extension}`.toLowerCase();
-				magicCode.append(`import "./${cssFilename}";\n`);
-				const fullCssPath = normalizePath(path.join(path.dirname(id), cssFilename));
-				cssList.set(fullCssPath, css);
+				cssFileNames[extension].shouldImport = true;
+				const cssListKey = cssFileNames[extension].name;
+				const prev = cssList.get(cssListKey);
+				cssList.set(cssListKey, `${prev || ''}${css}\n`);
 
 				// add the original variable name in DEV mode
 				let _className = `"${className}"`;
@@ -173,6 +183,11 @@ export function ecsstatic(options: Options = {}) {
 
 			// remove ecsstatic imports, we don't need them anymore
 			for (const { start, end } of ecsstaticImports.values()) magicCode.remove(start, end);
+
+			// import the css files!
+			Object.values(cssFileNames).forEach(({ name, shouldImport }) => {
+				if (shouldImport) magicCode.append(`import "${name}";\n`);
+			});
 
 			return {
 				code: magicCode.toString(),
