@@ -120,22 +120,8 @@ export function ecsstatic(options: Options = {}) {
 			let inlinedVars = '';
 
 			const cssFilenameHash = hash(normalizePath(id)).toLowerCase();
-			const cssFileNames = {
-				css: { name: `__acab:${cssFilenameHash}.css`, shouldImport: false },
-				scss: { name: `__acab:${cssFilenameHash}.scss`, shouldImport: false },
-			};
 
-			Object.values(cssFileNames).forEach(({ name }) => {
-				if (cssList.has(name)) {
-					cssList.delete(name);
-					viteServer?.moduleGraph.getModulesByFile(name)?.forEach((m) => {
-						viteServer.moduleGraph.invalidateModule(m);
-						m.lastHMRTimestamp = Date.now();
-					});
-				}
-			});
-
-			for (const node of cssTemplateLiterals) {
+			for (const [index, node] of cssTemplateLiterals.entries()) {
 				const { start, end, quasi, tag, _originalName } = node;
 				const isScss = tag.type === 'Identifier' && ecsstaticImports.get(tag.name)?.isScss;
 				const isGlobal = tag.type === 'Identifier' && ecsstaticImports.get(tag.name)?.isGlobal;
@@ -162,10 +148,18 @@ export function ecsstatic(options: Options = {}) {
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
-				cssFileNames[extension].shouldImport = true;
-				const cssListKey = cssFileNames[extension].name;
-				const prev = cssList.get(cssListKey);
-				cssList.set(cssListKey, `${prev || ''}${css}\n`);
+				const cssFileName = `__acab:${cssFilenameHash}-${index}.${extension}`;
+				if (cssList.has(cssFileName)) {
+					cssList.delete(cssFileName);
+					viteServer?.moduleGraph.getModulesByFile(cssFileName)?.forEach((m) => {
+						viteServer.moduleGraph.invalidateModule(m);
+						m.lastHMRTimestamp = Date.now();
+					});
+				}
+				cssList.set(cssFileName, css);
+
+				// import it
+				magicCode.append(`import "${cssFileName}";\n`);
 
 				// add the original variable name in DEV mode
 				let _className = `"${className}"`;
@@ -183,11 +177,6 @@ export function ecsstatic(options: Options = {}) {
 
 			// remove ecsstatic imports, we don't need them anymore
 			for (const { start, end } of ecsstaticImports.values()) magicCode.remove(start, end);
-
-			// import the css files!
-			Object.values(cssFileNames).forEach(({ name, shouldImport }) => {
-				if (shouldImport) magicCode.append(`import "${name}";\n`);
-			});
 
 			return {
 				code: magicCode.toString(),
