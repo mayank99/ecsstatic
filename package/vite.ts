@@ -125,6 +125,7 @@ export function ecsstatic(options: Options = {}) {
 			for (const node of cssTemplateLiterals) {
 				const { start, end, quasi, tag, _originalName } = node;
 				const isScss = tag.type === 'Identifier' && ecsstaticImports.get(tag.name)?.isScss;
+				const isGlobal = tag.type === 'Identifier' && ecsstaticImports.get(tag.name)?.isGlobal;
 
 				// lazy populate inlinedVars until we need it, to delay problems that come with this mess
 				if (quasi.expressions.length && !inlinedVars) {
@@ -140,6 +141,7 @@ export function ecsstatic(options: Options = {}) {
 					: rawTemplate.slice(1, rawTemplate.length - 2);
 				const [css, className] = processCss(templateContents, {
 					isScss,
+					isGlobal,
 					classNamePrefix,
 					isDev: viteConfigObj.command === 'serve',
 					marqueeMode,
@@ -147,7 +149,9 @@ export function ecsstatic(options: Options = {}) {
 
 				// add processed css to a .css file
 				const extension = isScss ? 'scss' : 'css';
-				let cssFilename = `${className.split(`${classNamePrefix}-`)[1]}`;
+				let cssFilename = !isGlobal
+					? `${className.split(`${classNamePrefix}-`)[1]}`
+					: hash(templateContents).replaceAll('-', '');
 				cssFilename = `${cssFilename}.acab.${extension}`.toLowerCase();
 				magicCode.append(`import "./${cssFilename}";\n`);
 				const fullCssPath = normalizePath(path.join(path.dirname(id), cssFilename));
@@ -159,8 +163,12 @@ export function ecsstatic(options: Options = {}) {
 					_className = `"${classNamePrefix}-${_originalName} ${className}"`;
 				}
 
-				// replace the tagged template literal with the generated className
-				magicCode.update(start, end, _className);
+				// replace the tagged template literal with the generated className or remove it
+				if (!isGlobal) {
+					magicCode.update(start, end, _className);
+				} else {
+					magicCode.remove(start, end);
+				}
 			}
 
 			// remove ecsstatic imports, we don't need them anymore
@@ -182,12 +190,19 @@ function processCss(
 	templateContents: string,
 	opts: {
 		isScss?: boolean;
+		isGlobal?: boolean;
 		classNamePrefix?: string;
 		isDev: boolean;
 		marqueeMode: Options['marqueeMode'];
 	}
 ) {
-	const { isScss = false, classNamePrefix = '🎈', isDev = false, marqueeMode = false } = opts;
+	const {
+		isScss = false,
+		isGlobal = false,
+		classNamePrefix = '🎈',
+		isDev = false,
+		marqueeMode = false,
+	} = opts;
 
 	const isImportOrUse = (line: string) =>
 		line.trim().startsWith('@import') || line.trim().startsWith('@use');
@@ -203,7 +218,9 @@ function processCss(
 		.join('\n');
 
 	const className = `${classNamePrefix}-${hash(templateContents.trim())}`;
-	const unprocessedCss = `${importsAndUses}\n.${className}{${codeWithoutImportsAndUses}}`;
+	const unprocessedCss = !isGlobal
+		? `${importsAndUses}\n.${className}{${codeWithoutImportsAndUses}}`
+		: templateContents.trim();
 
 	const plugins = !isScss
 		? [postcssNesting(), postcssNested(), autoprefixer(autoprefixerOptions)]
@@ -211,7 +228,7 @@ function processCss(
 	const options = isScss ? { parser: postcssScss } : {};
 	const { css } = postcss(plugins).process(unprocessedCss, options);
 
-	if (isDev || !marqueeMode) {
+	if (isDev || !marqueeMode || isGlobal) {
 		return [css, className] as const;
 	}
 
@@ -234,22 +251,27 @@ async function processTemplateLiteral(rawTemplate: string, { inlinedVars = '' })
 
 /** parses ast and returns info about all css/scss ecsstatic imports */
 function findEcsstaticImports(ast: ESTree.Program) {
-	const statements = new Map<string, { isScss: boolean; start: number; end: number }>();
+	const statements = new Map<
+		string,
+		{ isScss: boolean; start: number; end: number; isGlobal: boolean }
+	>();
 
 	for (const node of ast.body.filter((node) => node.type === 'ImportDeclaration')) {
 		if (
 			node.type === 'ImportDeclaration' &&
 			node.source.value?.toString().startsWith('@acab/ecsstatic')
 		) {
+			const isScss = node.source.value === '@acab/ecsstatic/scss';
 			const { start, end } = node;
 			node.specifiers.forEach((specifier) => {
-				if (
-					specifier.type === 'ImportSpecifier' &&
-					['css', 'scss'].includes(specifier.imported.name)
-				) {
+				if (specifier.type === 'ImportSpecifier') {
 					const tagName = specifier.local.name;
-					const isScss = specifier.imported.name === 'scss';
-					statements.set(tagName, { isScss, start, end });
+					statements.set(tagName, {
+						isScss,
+						start,
+						end,
+						isGlobal: specifier.imported.name !== 'css',
+					});
 				}
 			});
 		}
@@ -384,7 +406,7 @@ function loadDummyEcsstatic({ classNamePrefix = '🎈' }) {
 	const createTaggedCssFnStr = createTaggedCssFn.toString();
 	const contents = `${hashStr}\n${createTaggedCssFnStr}\n
 	  export const css = createTaggedCssFn('${classNamePrefix}');
-	  export const scss = createTaggedCssFn('${classNamePrefix}');
+		export const createGlobalStyle = () => {};
 	`;
 
 	return <esbuild.Plugin>{

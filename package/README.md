@@ -60,16 +60,16 @@ const button = css`
 `;
 ```
 
-Or use `scss`:
+Or use with `/scss`:
 
 ```tsx
-import { scss } from '@acab/ecsstatic';
+import { css } from '@acab/ecsstatic/scss';
 
 export const Button = (props) => {
   return <button {...props} className={button} />;
 };
 
-const button = scss`
+const button = css`
   @use 'open-props-scss' as op;
 
   // ...
@@ -94,13 +94,23 @@ export default defineConfig({
 });
 ```
 
+## Global styles
+
+The `createGlobalStyle` function can be used to apply unscoped, global styles. Note that this is unnecessary in most cases as you can just create a regular `.css`/`.scss` file, but it can be useful for interpolating values that only exist in JS.
+
+```ts
+import { createGlobalStyle } from '@acab/ecsstatic';
+
+createGlobalStyle`
+  :root {
+    --foo: ${1 + 1};
+  }
+`;
+```
+
 ## Syntax highlighting
 
-For syntax highlighting and intellisense, use the [vscode-styled-components](https://marketplace.visualstudio.com/items?itemName=styled-components.vscode-styled-components) extension. This should work fine for `css` literals, but for `scss` you might need to rename the import.
-
-```js
-import { scss as css } from '@acab/ecsstatic';
-```
+For syntax highlighting and intellisense, use the [vscode-styled-components](https://marketplace.visualstudio.com/items?itemName=styled-components.vscode-styled-components) extension.
 
 ## Atomic classes
 

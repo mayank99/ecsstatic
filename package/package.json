@@ -29,6 +29,11 @@
 			"import": "./index.js",
 			"require": "./index.cjs"
 		},
+		"./scss": {
+			"types": "./scss.d.ts",
+			"import": "./scss.js",
+			"require": "./scss.cjs"
+		},
 		"./vite": {
 			"types": "./vite.d.ts",
 			"import": "./vite.js",
