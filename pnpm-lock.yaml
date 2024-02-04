@@ -12,13 +12,13 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4
       turbo:
-        specifier: ^1.12.2
+        specifier: latest
         version: 1.12.2
 
   demos/astro-react:
     dependencies:
       '@acab/ecsstatic':
-        specifier: ^0.7.1
+        specifier: '*'
         version: link:../../package
       '@astrojs/react':
         specifier: ^3.0.9
@@ -48,7 +48,7 @@ importers:
   demos/astro-solid:
     dependencies:
       '@acab/ecsstatic':
-        specifier: workspace:^
+        specifier: '*'
         version: link:../../package
       '@astrojs/solid-js':
         specifier: ^4.0.1
@@ -73,7 +73,7 @@ importers:
         version: 10.19.3
     devDependencies:
       '@acab/ecsstatic':
-        specifier: workspace:^
+        specifier: '*'
         version: link:../../package
       '@preact/preset-vite':
         specifier: ^2.8.1
@@ -98,7 +98,7 @@ importers:
         version: 18.2.0(react@18.2.0)
     devDependencies:
       '@acab/ecsstatic':
-        specifier: workspace:^
+        specifier: '*'
         version: link:../../package
       '@types/react':
         specifier: ^18.2.52
@@ -135,7 +135,7 @@ importers:
         version: 1.8.12
     devDependencies:
       '@acab/ecsstatic':
-        specifier: workspace:^
+        specifier: '*'
         version: link:../../package
       typescript:
         specifier: ^5.3.3

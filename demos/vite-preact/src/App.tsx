@@ -9,7 +9,9 @@ export function App() {
 	return (
 		<div class={wrapper}>
 			<Logo />
-			<Button onClick={() => setCount((count) => count + 1)}>count is {count}</Button>
+			<Button onClick={() => setCount((count) => count + 1)}>
+				count is {count}
+			</Button>
 			<p>
 				Edit any <code class={code}>.tsx</code> file to test HMR
 			</p>
