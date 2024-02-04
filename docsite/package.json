@@ -11,13 +11,13 @@
 		"astro": "astro"
 	},
 	"dependencies": {
-		"@acab/reset.css": "^0.5.3",
-		"@astrojs/preact": "^2.2.0",
-		"astro": "^2.5.0",
-		"open-props-scss": "^0.4.1",
-		"preact": "^10.14.1",
+		"@acab/reset.css": "^0.8.0",
+		"@astrojs/preact": "^3.1.0",
+		"astro": "^4.3.2",
+		"open-props-scss": "^0.7.1",
+		"preact": "^10.19.3",
 		"rough-notation": "^0.5.1",
-		"sass": "^1.62.0",
-		"shiki": "^0.14.2"
+		"sass": "^1.70.0",
+		"shiki": "1.0.0-beta.5"
 	}
 }
