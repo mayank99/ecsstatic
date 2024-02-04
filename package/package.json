@@ -13,30 +13,25 @@
 		"static"
 	],
 	"type": "module",
-	"main": "index.cjs",
 	"module": "index.js",
 	"types": "index.d.ts",
 	"files": [
 		"*.js",
-		"*.cjs",
 		"*.d.ts",
 		"!overrides.d.ts"
 	],
 	"exports": {
 		".": {
 			"types": "./index.d.ts",
-			"import": "./index.js",
-			"require": "./index.cjs"
+			"import": "./index.js"
 		},
 		"./scss": {
 			"types": "./scss.d.ts",
-			"import": "./scss.js",
-			"require": "./scss.cjs"
+			"import": "./scss.js"
 		},
 		"./vite": {
 			"types": "./vite.d.ts",
-			"import": "./vite.js",
-			"require": "./vite.cjs"
+			"import": "./vite.js"
 		}
 	},
 	"dependencies": {

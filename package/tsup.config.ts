@@ -3,7 +3,7 @@ import type { Options } from 'tsup';
 export default <Options>{
 	entryPoints: ['index.ts', 'scss.ts', 'vite.ts'],
 	clean: false,
-	format: ['cjs', 'esm'],
+	format: ['esm'],
 	dts: true,
 	splitting: false,
 	outDir: '.',

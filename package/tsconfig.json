@@ -1,9 +1,9 @@
 {
 	"compilerOptions": {
-		"target": "es2020",
-		"module": "esnext",
+		"target": "es2021",
+		"module": "nodenext",
 		"lib": ["esnext", "DOM"],
-		"moduleResolution": "node",
+		"moduleResolution": "nodenext",
 		"esModuleInterop": true,
 		"strict": true,
 		"strictNullChecks": true,
