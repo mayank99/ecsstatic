@@ -220,11 +220,11 @@ import Preeminent from '../components/Preeminent.astro';
 				gap: $size-fluid-6;
 				display: grid;
 				align-items: center;
+				margin-inline: auto;
+				max-inline-size: min(90%, 70em);
 			}
 
 			article {
-				margin-inline: auto;
-				max-inline-size: min(90%, 70em);
 				scroll-margin-block-start: $size-fluid-5;
 				font-size: $font-size-fluid-1;
 				gap: $size-fluid-4;
@@ -264,7 +264,9 @@ import Preeminent from '../components/Preeminent.astro';
 
 					&:hover,
 					&:focus-visible {
-						box-shadow: 0 0 2px $red-5, 0 0 16px $pink-9;
+						box-shadow:
+							0 0 2px $red-5,
+							0 0 16px $pink-9;
 					}
 
 					@media (forced-colors: active) {

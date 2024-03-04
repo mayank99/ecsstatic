@@ -3,6 +3,7 @@ import preact from '@astrojs/preact';
 
 export default defineConfig({
 	integrations: [preact()],
+	scopedStyleStrategy: 'where',
 	vite: {
 		css: {
 			preprocessorOptions: {
@@ -12,4 +13,7 @@ export default defineConfig({
 			},
 		},
 	},
+	devToolbar: {
+		enabled: false
+	}
 });
