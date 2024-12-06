@@ -81,18 +81,24 @@ export function ecsstatic(options: Options = {}) {
 			viteServer = _server;
 		},
 
-		resolveId(id, importer) {
+		resolveId(rawId, importer) {
 			if (!importer) return;
 
+			// SSR frameworks may add queries like `?inline` to get the processed CSS.
+			// Preemptively remove any queries here to support any added to it.
+			const id = rawId.split('?')[0];
 			if (id.endsWith('css') && id.startsWith('__acab')) {
 				if (cssList.has(id)) {
-					return id;
+					return rawId;
 				}
 			}
 			return null;
 		},
 
-		load(id) {
+		load(rawId) {
+			// SSR frameworks may add queries like `?inline` to get the processed CSS.
+			// Preemptively remove any queries here to support any added to it.
+			const id = rawId.split('?')[0];
 			if (cssList.has(id)) {
 				const css = cssList.get(id);
 				return css;
@@ -198,7 +204,7 @@ function processCss(
 		classNamePrefix?: string;
 		isDev: boolean;
 		marqueeMode: Options['marqueeMode'];
-	}
+	},
 ) {
 	const {
 		isScss = false,
@@ -312,7 +318,7 @@ async function evalWithEsbuild(expression: string, allVarDeclarations = '') {
 	} catch (err) {
 		if (err instanceof Error) {
 			const e = new Error(
-				err.message.substring(err.message.lastIndexOf(args.at(-1)!) + args.at(-1)!.length)
+				err.message.substring(err.message.lastIndexOf(args.at(-1)!) + args.at(-1)!.length),
 			);
 			e.stack = e.stack
 				?.split('\n')
@@ -329,7 +335,7 @@ async function evalWithEsbuild(expression: string, allVarDeclarations = '') {
 /** uses esbuild.build to resolve all imports and return the "bundled" code */
 async function inlineVarsUsingEsbuild(
 	fileId: string,
-	{ noExternal = [] as string[], classNamePrefix = '🎈' }
+	{ noExternal = [] as string[], classNamePrefix = '🎈' },
 ) {
 	const processedCode = (
 		await esbuild.build({
@@ -527,8 +533,8 @@ function generateMarquee(code: string, { originalClass = '', isScss = false, pre
 							root!.append(rule);
 						}
 					},
-				} as Postcss.AcceptedPlugin),
-			{ postcss: true }
+				}) as Postcss.AcceptedPlugin,
+			{ postcss: true },
 		)(),
 	]).process(code, isScss ? { parser: postcssScss } : {});
 
