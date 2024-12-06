@@ -204,7 +204,7 @@ function processCss(
 		classNamePrefix?: string;
 		isDev: boolean;
 		marqueeMode: Options['marqueeMode'];
-	},
+	}
 ) {
 	const {
 		isScss = false,
@@ -318,7 +318,7 @@ async function evalWithEsbuild(expression: string, allVarDeclarations = '') {
 	} catch (err) {
 		if (err instanceof Error) {
 			const e = new Error(
-				err.message.substring(err.message.lastIndexOf(args.at(-1)!) + args.at(-1)!.length),
+				err.message.substring(err.message.lastIndexOf(args.at(-1)!) + args.at(-1)!.length)
 			);
 			e.stack = e.stack
 				?.split('\n')
@@ -335,7 +335,7 @@ async function evalWithEsbuild(expression: string, allVarDeclarations = '') {
 /** uses esbuild.build to resolve all imports and return the "bundled" code */
 async function inlineVarsUsingEsbuild(
 	fileId: string,
-	{ noExternal = [] as string[], classNamePrefix = '🎈' },
+	{ noExternal = [] as string[], classNamePrefix = '🎈' }
 ) {
 	const processedCode = (
 		await esbuild.build({
@@ -533,8 +533,8 @@ function generateMarquee(code: string, { originalClass = '', isScss = false, pre
 							root!.append(rule);
 						}
 					},
-				}) as Postcss.AcceptedPlugin,
-			{ postcss: true },
+				} as Postcss.AcceptedPlugin),
+			{ postcss: true }
 		)(),
 	]).process(code, isScss ? { parser: postcssScss } : {});
 
