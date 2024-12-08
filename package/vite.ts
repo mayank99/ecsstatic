@@ -81,18 +81,24 @@ export function ecsstatic(options: Options = {}) {
 			viteServer = _server;
 		},
 
-		resolveId(id, importer) {
+		resolveId(rawId, importer) {
 			if (!importer) return;
 
+			// SSR frameworks may add queries like `?inline` to get the processed CSS.
+			// Preemptively remove any queries here to support any added to it.
+			const id = rawId.split('?')[0];
 			if (id.endsWith('css') && id.startsWith('__acab')) {
 				if (cssList.has(id)) {
-					return id;
+					return rawId;
 				}
 			}
 			return null;
 		},
 
-		load(id) {
+		load(rawId) {
+			// SSR frameworks may add queries like `?inline` to get the processed CSS.
+			// Preemptively remove any queries here to support any added to it.
+			const id = rawId.split('?')[0];
 			if (cssList.has(id)) {
 				const css = cssList.get(id);
 				return css;
