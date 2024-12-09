@@ -96,9 +96,7 @@ export function ecsstatic(options: Options = {}) {
 		},
 
 		load(rawId) {
-			// SSR frameworks may add queries like `?inline` to get the processed CSS.
-			// Preemptively remove any queries here to support any added to it.
-			const id = rawId.split('?')[0];
+			const id = rawId.split('?')[0].split('/').at(-1)!; // remove ?params and leading /
 			if (cssList.has(id)) {
 				const css = cssList.get(id);
 				return css;
@@ -280,7 +278,7 @@ function findEcsstaticImports(ast: ESTree.Program) {
 						isScss,
 						start,
 						end,
-						isGlobal: specifier.imported.name !== 'css',
+						isGlobal: (specifier.imported as ESTree.Identifier).name !== 'css',
 					});
 				}
 			});
