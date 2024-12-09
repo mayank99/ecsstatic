@@ -10,12 +10,12 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
-		"preact": "^10.19.3"
+		"preact": "^10.25.1"
 	},
 	"devDependencies": {
-		"@acab/ecsstatic": "*",
-		"@preact/preset-vite": "^2.8.1",
-		"typescript": "^5.3.3",
-		"vite": "^5.0.12"
+		"@acab/ecsstatic": "workspace:*",
+		"@preact/preset-vite": "^2.9.3",
+		"typescript": "^5.7.2",
+		"vite": "^6.0.3"
 	}
 }

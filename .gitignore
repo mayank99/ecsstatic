@@ -6,11 +6,12 @@ node_modules
 # testing
 coverage
 
-# next.js
+# frameworks
 .next/
 out/
 build
 dist
+.astro
 
 # misc
 .DS_Store
